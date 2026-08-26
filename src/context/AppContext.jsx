@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase, supabaseAdmin } from '../lib/supabase';
 import { recalculateProjecaoMensal, getNextMonthString, calculateAverageTicket } from '../utils/financialEngine';
 import {
@@ -118,14 +118,14 @@ export const AppProvider = ({ children }) => {
     }
 
     // 2. Master Super Admin fallback
-    if (cleanEmail === 'moiseztorres100@gmail.com' && cleanPass === 'Geral123@') {
+    if ((cleanEmail === 'moiseztorres100@gmail.com' || cleanEmail === 'moisez.torres@sou.ucpel.edu.br') && cleanPass === 'Geral123@') {
       const adminUser = {
         id: 'func-1',
-        email: 'moiseztorres100@gmail.com',
+        email: cleanEmail,
         name: 'Moisés Torres',
         role: 'Administrador',
         cpf: '000.000.000-00',
-        pix: 'moiseztorres100@gmail.com',
+        pix: cleanEmail,
         avatar: 'MT'
       };
       setUser(adminUser);
@@ -1165,6 +1165,24 @@ export const AppProvider = ({ children }) => {
               }
             });
           }
+        } else if (createErr) {
+          // Fallback via standard client signUp if admin endpoint is unauthorized in browser
+          await supabase.auth.signUp({
+            email: userData.email.toLowerCase().trim(),
+            password: userData.senha,
+            options: {
+              data: {
+                nome: userData.nome,
+                cargo: userData.cargo,
+                cpf: userData.cpf,
+                pix: userData.pix,
+                custoMensal: Number(userData.custoMensal) || 0,
+                dataInicio: userData.dataInicio || null,
+                dataFim: userData.dataFim || null,
+                status: userData.status
+              }
+            }
+          });
         }
       }
     } catch (err) {
