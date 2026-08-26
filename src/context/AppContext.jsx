@@ -118,6 +118,22 @@ export const AppProvider = ({ children }) => {
     user?.role === 'Gestor'
   );
 
+  // Keep logged in user role synchronized dynamically with the funcionarios table
+  useEffect(() => {
+    if (user?.email && funcionarios && funcionarios.length > 0) {
+      const match = funcionarios.find(f => f.email && f.email.toLowerCase().trim() === user.email.toLowerCase().trim());
+      if (match && match.cargo && (match.cargo !== user.role || (match.nome && match.nome !== user.name))) {
+        const updated = {
+          ...user,
+          role: match.cargo,
+          name: match.nome || user.name
+        };
+        setUser(updated);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+      }
+    }
+  }, [funcionarios, user?.email]);
+
   const login = async (emailInput, passwordInput) => {
     const cleanEmail = (emailInput || '').toLowerCase().trim();
     const cleanPass = (passwordInput || '').trim();
