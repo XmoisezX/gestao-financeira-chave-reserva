@@ -319,43 +319,137 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialResumoExecutivo;
   });
 
+  const isSupabaseLoaded = useRef(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+
   // Helper for dual persistence (LocalStorage + Supabase DB)
-  const syncData = (key, data) => {
+  const syncData = async (key, data) => {
     localStorage.setItem(key, JSON.stringify(data));
-    supabase.from('app_state').upsert({
-      key,
-      value: data,
-      updated_at: new Date().toISOString()
-    }).then(() => {}).catch(() => {});
+    
+    // Do NOT push to Supabase until initial load from Supabase has completed!
+    // This prevents empty local state from overwriting the cloud database on initial mount.
+    if (!isSupabaseLoaded.current) return;
+
+    try {
+      await supabase.from('app_state').upsert({
+        key,
+        value: data,
+        updated_at: new Date().toISOString()
+      });
+      setLastSyncedAt(new Date());
+    } catch (err) {
+      console.warn('Erro ao sincronizar chave com Supabase:', key, err);
+    }
+  };
+
+  // Push all current local state to Supabase on-demand
+  const pushLocalStateToSupabase = async () => {
+    setIsSyncing(true);
+    try {
+      const itemsToSync = [
+        { key: STORAGE_KEYS.LEADS, value: leads },
+        { key: STORAGE_KEYS.CLIENTES, value: clientes },
+        { key: STORAGE_KEYS.LANCAMENTOS, value: lancamentos },
+        { key: STORAGE_KEYS.PROJECAO_MENSAL, value: projecaoMensal },
+        { key: STORAGE_KEYS.PLANOS, value: planos },
+        { key: STORAGE_KEYS.ALUGUEL, value: aluguel },
+        { key: STORAGE_KEYS.PACOTES, value: pacotes },
+        { key: STORAGE_KEYS.EQUIPE, value: equipe },
+        { key: STORAGE_KEYS.INFRAESTRUTURA, value: infraestrutura },
+        { key: STORAGE_KEYS.AQUISICAO, value: aquisicao },
+        { key: STORAGE_KEYS.PREMISSAS, value: premissas },
+        { key: STORAGE_KEYS.TAXAS_PAGAMENTO, value: taxasPagamento },
+        { key: STORAGE_KEYS.RESUMO_EXECUTIVO, value: resumoExecutivo },
+        { key: STORAGE_KEYS.FUNCIONARIOS, value: funcionarios },
+        { key: STORAGE_KEYS.AUDIT_LOG, value: auditLog },
+      ];
+
+      for (const item of itemsToSync) {
+        await supabase.from('app_state').upsert({
+          key: item.key,
+          value: item.value,
+          updated_at: new Date().toISOString()
+        });
+      }
+      setLastSyncedAt(new Date());
+      return { success: true };
+    } catch (err) {
+      console.error('Erro ao enviar estado para Supabase:', err);
+      return { success: false, error: err.message || err };
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Initial load from Supabase Database on app startup
-  useEffect(() => {
-    const fetchSupabaseData = async () => {
-      try {
-        const { data, error } = await supabase.from('app_state').select('*');
-        if (data && data.length > 0) {
-          data.forEach(item => {
-            if (item.key === STORAGE_KEYS.PROJECAO_MENSAL && item.value) setProjecaoMensal(item.value);
-            if (item.key === STORAGE_KEYS.PLANOS && item.value) setPlanos(item.value);
-            if (item.key === STORAGE_KEYS.ALUGUEL && item.value) setAluguel(item.value);
-            if (item.key === STORAGE_KEYS.PACOTES && item.value) setPacotes(item.value);
-            if (item.key === STORAGE_KEYS.EQUIPE && item.value) setEquipe(item.value);
-            if (item.key === STORAGE_KEYS.INFRAESTRUTURA && item.value) setInfraestrutura(item.value);
-            if (item.key === STORAGE_KEYS.AQUISICAO && item.value) setAquisicao(item.value);
-            if (item.key === STORAGE_KEYS.PREMISSAS && item.value) setPremissas(item.value);
-            if (item.key === STORAGE_KEYS.TAXAS_PAGAMENTO && item.value) setTaxasPagamento(item.value);
-            if (item.key === STORAGE_KEYS.RESUMO_EXECUTIVO && item.value) setResumoExecutivo(item.value);
-            if (item.key === STORAGE_KEYS.LEADS && item.value) setLeads(item.value);
-            if (item.key === STORAGE_KEYS.CLIENTES && item.value) setClientes(item.value);
-            if (item.key === STORAGE_KEYS.LANCAMENTOS && item.value) setLancamentos(item.value);
-          });
-        }
-      } catch (err) {
-        // Fallback gracefully to localStorage
+  const fetchSupabaseData = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.from('app_state').select('*');
+      if (data && data.length > 0) {
+        data.forEach(item => {
+          if (!item.value) return;
+          localStorage.setItem(item.key, JSON.stringify(item.value));
+          if (item.key === STORAGE_KEYS.PROJECAO_MENSAL) setProjecaoMensal(item.value);
+          if (item.key === STORAGE_KEYS.PLANOS) setPlanos(item.value);
+          if (item.key === STORAGE_KEYS.ALUGUEL) setAluguel(item.value);
+          if (item.key === STORAGE_KEYS.PACOTES) setPacotes(item.value);
+          if (item.key === STORAGE_KEYS.EQUIPE) setEquipe(item.value);
+          if (item.key === STORAGE_KEYS.INFRAESTRUTURA) setInfraestrutura(item.value);
+          if (item.key === STORAGE_KEYS.AQUISICAO) setAquisicao(item.value);
+          if (item.key === STORAGE_KEYS.PREMISSAS) setPremissas(item.value);
+          if (item.key === STORAGE_KEYS.TAXAS_PAGAMENTO) setTaxasPagamento(item.value);
+          if (item.key === STORAGE_KEYS.RESUMO_EXECUTIVO) setResumoExecutivo(item.value);
+          if (item.key === STORAGE_KEYS.LEADS) setLeads(item.value);
+          if (item.key === STORAGE_KEYS.CLIENTES) setClientes(item.value);
+          if (item.key === STORAGE_KEYS.LANCAMENTOS) setLancamentos(item.value);
+          if (item.key === STORAGE_KEYS.FUNCIONARIOS) setFuncionarios(item.value);
+          if (item.key === STORAGE_KEYS.AUDIT_LOG) setAuditLog(item.value);
+        });
+        setLastSyncedAt(new Date());
       }
-    };
+    } catch (err) {
+      console.warn('Fallback para cache local do navegador:', err);
+    } finally {
+      isSupabaseLoaded.current = true;
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSupabaseData();
+
+    // Supabase Realtime synchronization
+    const channel = supabase
+      .channel('app_state_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state' }, payload => {
+        if (payload.new && payload.new.key) {
+          const item = payload.new;
+          if (item.key === STORAGE_KEYS.PROJECAO_MENSAL && item.value) setProjecaoMensal(item.value);
+          if (item.key === STORAGE_KEYS.PLANOS && item.value) setPlanos(item.value);
+          if (item.key === STORAGE_KEYS.ALUGUEL && item.value) setAluguel(item.value);
+          if (item.key === STORAGE_KEYS.PACOTES && item.value) setPacotes(item.value);
+          if (item.key === STORAGE_KEYS.EQUIPE && item.value) setEquipe(item.value);
+          if (item.key === STORAGE_KEYS.INFRAESTRUTURA && item.value) setInfraestrutura(item.value);
+          if (item.key === STORAGE_KEYS.AQUISICAO && item.value) setAquisicao(item.value);
+          if (item.key === STORAGE_KEYS.PREMISSAS && item.value) setPremissas(item.value);
+          if (item.key === STORAGE_KEYS.TAXAS_PAGAMENTO && item.value) setTaxasPagamento(item.value);
+          if (item.key === STORAGE_KEYS.RESUMO_EXECUTIVO && item.value) setResumoExecutivo(item.value);
+          if (item.key === STORAGE_KEYS.LEADS && item.value) setLeads(item.value);
+          if (item.key === STORAGE_KEYS.CLIENTES && item.value) setClientes(item.value);
+          if (item.key === STORAGE_KEYS.LANCAMENTOS && item.value) setLancamentos(item.value);
+          if (item.key === STORAGE_KEYS.FUNCIONARIOS && item.value) setFuncionarios(item.value);
+          if (item.key === STORAGE_KEYS.AUDIT_LOG && item.value) setAuditLog(item.value);
+          localStorage.setItem(item.key, JSON.stringify(item.value));
+          setLastSyncedAt(new Date());
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Sync to LocalStorage + Supabase
@@ -372,6 +466,8 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { syncData(STORAGE_KEYS.PREMISSAS, premissas); }, [premissas]);
   useEffect(() => { syncData(STORAGE_KEYS.TAXAS_PAGAMENTO, taxasPagamento); }, [taxasPagamento]);
   useEffect(() => { syncData(STORAGE_KEYS.RESUMO_EXECUTIVO, resumoExecutivo); }, [resumoExecutivo]);
+  useEffect(() => { syncData(STORAGE_KEYS.FUNCIONARIOS, funcionarios); }, [funcionarios]);
+  useEffect(() => { syncData(STORAGE_KEYS.AUDIT_LOG, auditLog); }, [auditLog]);
 
   // Always enforce fresh engine calculation for projecaoMensal when premissas or plans change
   useEffect(() => {
@@ -1253,7 +1349,12 @@ export const AppProvider = ({ children }) => {
       cacMedioReal,
       // Audit
       auditLog,
-      addAuditLog
+      addAuditLog,
+      // Cloud Sync Status & Actions
+      isSyncing,
+      lastSyncedAt,
+      fetchSupabaseData,
+      pushLocalStateToSupabase
     }}>
       {children}
     </AppContext.Provider>
