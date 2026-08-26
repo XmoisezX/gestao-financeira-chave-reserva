@@ -115,9 +115,7 @@ export const AppProvider = ({ children }) => {
 
   const isAdmin = Boolean(
     user?.role === 'Administrador' ||
-    user?.role === 'Gestor' ||
-    user?.email?.toLowerCase().trim() === 'moiseztorres100@gmail.com' ||
-    user?.email?.toLowerCase().trim() === 'moisez.torres@sou.ucpel.edu.br'
+    user?.role === 'Gestor'
   );
 
   const login = async (emailInput, passwordInput) => {
@@ -142,8 +140,9 @@ export const AppProvider = ({ children }) => {
           return { success: false, message: 'Este usuário está inativo no sistema. Contate o administrador.' };
         }
 
-        const name = meta.nome || meta.full_name || localMatch?.nome || cleanEmail.split('@')[0];
-        const role = meta.cargo || localMatch?.cargo || (cleanEmail === 'moiseztorres100@gmail.com' ? 'Administrador' : 'Vendedor');
+        // Role and details prioritized from the Usuários (funcionarios) table
+        const role = localMatch?.cargo || meta.cargo || (cleanEmail === 'moiseztorres100@gmail.com' ? 'Administrador' : 'Vendedor');
+        const name = localMatch?.nome || meta.nome || meta.full_name || cleanEmail.split('@')[0];
         const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
 
         const loggedUser = {
@@ -164,15 +163,15 @@ export const AppProvider = ({ children }) => {
       console.warn('Erro ao autenticar no Supabase:', err);
     }
 
-    // 2. Master Super Admin fallback
-    if ((cleanEmail === 'moiseztorres100@gmail.com' || cleanEmail === 'moisez.torres@sou.ucpel.edu.br') && cleanPass === 'Geral123@') {
+    // 2. Master Super Admin fallback for primary master account
+    if (cleanEmail === 'moiseztorres100@gmail.com' && cleanPass === 'Geral123@') {
       const adminUser = {
         id: 'func-1',
-        email: cleanEmail,
+        email: 'moiseztorres100@gmail.com',
         name: 'Moisés Torres',
         role: 'Administrador',
         cpf: '000.000.000-00',
-        pix: cleanEmail,
+        pix: 'moiseztorres100@gmail.com',
         avatar: 'MT'
       };
       setUser(adminUser);
@@ -1252,6 +1251,19 @@ export const AppProvider = ({ children }) => {
       localStorage.setItem(STORAGE_KEYS.FUNCIONARIOS, JSON.stringify(updated));
       return updated;
     });
+
+    // If the saved user is the currently logged user, update session role and details immediately
+    if (user && user.email && userData.email && user.email.toLowerCase().trim() === userData.email.toLowerCase().trim()) {
+      const updatedLoggedUser = {
+        ...user,
+        name: userData.nome || user.name,
+        role: userData.cargo || user.role,
+        cpf: userData.cpf || user.cpf,
+        pix: userData.pix || user.pix
+      };
+      setUser(updatedLoggedUser);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedLoggedUser));
+    }
 
     return { success: true };
   };
