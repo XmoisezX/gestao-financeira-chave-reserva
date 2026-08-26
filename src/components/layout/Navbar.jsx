@@ -14,19 +14,34 @@ import {
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, clientesAtivos, mrrTotalReal } = useApp();
+  const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin } = useApp();
   const [collapsed, setCollapsed] = useState(false);
 
-  const navItems = [
+  // Calculate pending commissions
+  const pendingComissoesCount = (clientes || []).filter(c => {
+    if (c.status !== 'Ativo') return false;
+    if (isAdmin) {
+      return !c.comissaoVendaPaga || !c.comissaoSuportePaga;
+    }
+    const isSeller = c.vendedorResponsavel === user?.name || c.vendedorResponsavel === user?.email;
+    const isSupport = c.suporteResponsavel === user?.name || c.suporteResponsavel === user?.email;
+    const vendPendente = isSeller && !c.comissaoVendaPaga;
+    const supPendente = isSupport && !c.comissaoSuportePaga;
+    return vendPendente || supPendente;
+  }).length;
+
+  const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'metas', label: 'Metas', icon: Target },
+    { id: 'metas', label: 'Metas', icon: Target, adminOnly: true },
     { id: 'crm', label: 'Funil de Vendas', icon: Kanban },
     { id: 'clientes', label: 'Clientes', icon: Users },
-    { id: 'comissoes', label: 'Comissões', icon: DollarSign },
-    { id: 'operacao', label: 'Operação Diária', icon: TrendingUp },
-    { id: 'configuracoes', label: 'Configurações', icon: Settings },
-    { id: 'funcionarios', label: 'Usuários', icon: Users },
+    { id: 'comissoes', label: 'Comissões', icon: DollarSign, badge: pendingComissoesCount },
+    { id: 'operacao', label: 'Operação Diária', icon: TrendingUp, adminOnly: true },
+    { id: 'configuracoes', label: 'Configurações', icon: Settings, adminOnly: true },
+    { id: 'funcionarios', label: 'Usuários', icon: Users, adminOnly: true },
   ];
+
+  const navItems = allNavItems.filter(item => !item.adminOnly || isAdmin);
 
   return (
     <aside
@@ -57,13 +72,15 @@ export const Sidebar = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+            const hasBadge = item.badge && item.badge > 0;
+
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? (hasBadge ? `${item.label} (${item.badge} pendentes)` : item.label) : undefined}
                 className={`
-                  w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-colors
+                  relative w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-colors
                   ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
                   ${isActive
                     ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
@@ -71,8 +88,24 @@ export const Sidebar = () => {
                   }
                 `}
               >
-                <Icon className="w-[18px] h-[18px] shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                <div className="relative shrink-0">
+                  <Icon className="w-[18px] h-[18px]" />
+                  {hasBadge && collapsed && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-950 animate-pulse"></span>
+                  )}
+                </div>
+
+                {!collapsed && (
+                  <>
+                    <span className="truncate">{item.label}</span>
+                    {hasBadge && (
+                      <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white shadow-sm animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
               </button>
             );
           })}

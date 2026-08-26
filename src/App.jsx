@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/layout/Navbar';
 import { Header } from './components/layout/Header';
@@ -13,8 +13,16 @@ import { FuncionariosModule } from './components/modules/FuncionariosModule';
 import { ComissoesModule } from './components/modules/ComissoesModule';
 
 const MainContent = () => {
-  const { activeTab, isAuthenticated } = useApp();
+  const { activeTab, setActiveTab, isAuthenticated, isAdmin } = useApp();
   const [isLancamentoModalOpen, setIsLancamentoModalOpen] = useState(false);
+
+  // Route protection: prevent non-admin from accessing financial/admin tabs
+  useEffect(() => {
+    const adminOnlyTabs = ['metas', 'operacao', 'configuracoes', 'funcionarios'];
+    if (isAuthenticated && !isAdmin && adminOnlyTabs.includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, isAdmin, isAuthenticated, setActiveTab]);
 
   if (!isAuthenticated) {
     return <LoginView />;

@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Users, Search, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 
 export const ClientesModule = () => {
   const {
-    user,
     clientes, addCliente, updateCliente, churnCliente, reactivateCliente, deleteCliente,
-    clientesAtivos, clientesChurned, mrrTotalReal, arpuMedioReal, churnRateReal, planos,
-    funcionarios, validateClientSale, aluguel, pacotes, addAuditLog
+    planos, aluguel, pacotes, funcionarios, addAuditLog, validateClientSale,
+    isAdmin, user
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,11 +39,26 @@ export const ClientesModule = () => {
   const [isChurnModalOpen, setIsChurnModalOpen] = useState(false);
   const [churnData, setChurnData] = useState({ id: null, date: new Date().toISOString().split('T')[0] });
 
-  const filteredClientes = clientes.filter(c => {
+  const accessibleClientes = useMemo(() => {
+    return (clientes || []).filter(c => {
+      if (isAdmin || !user) return true;
+      const isSeller = c.vendedorResponsavel === user.name || c.vendedorResponsavel === user.email;
+      const isSupport = c.suporteResponsavel === user.name || c.suporteResponsavel === user.email;
+      return isSeller || isSupport;
+    });
+  }, [clientes, isAdmin, user]);
+
+  const filteredClientes = accessibleClientes.filter(c => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = c.nome.toLowerCase().includes(q) || c.empresa?.toLowerCase().includes(q) || false;
     return matchesSearch && (statusFilter === 'all' || c.status === statusFilter);
   });
+
+  const userClientesAtivos = accessibleClientes.filter(c => c.status === 'Ativo');
+  const userClientesChurned = accessibleClientes.filter(c => c.status === 'Churned');
+  const userMrrTotal = userClientesAtivos.reduce((acc, c) => acc + (Number(c.mrr) || 0), 0);
+  const userArpuMedio = userClientesAtivos.length > 0 ? userMrrTotal / userClientesAtivos.length : 0;
+  const userChurnRate = accessibleClientes.length > 0 ? ((userClientesChurned.length / accessibleClientes.length) * 100).toFixed(1) : '0.0';
 
   const handleSaveCliente = (e) => { 
     e.preventDefault(); 
@@ -249,21 +263,21 @@ export const ClientesModule = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card p-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Clientes Ativos</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{clientesAtivos.length}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{isAdmin ? 'Clientes Ativos' : 'Meus Clientes Ativos'}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{userClientesAtivos.length}</p>
         </div>
         <div className="card p-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">MRR Total</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">R$ {mrrTotalReal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{isAdmin ? 'MRR Total' : 'Meu MRR Gerado'}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">R$ {userMrrTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</p>
         </div>
         <div className="card p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">ARPU Médio</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">R$ {arpuMedioReal.toFixed(0)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">R$ {userArpuMedio.toFixed(0)}</p>
         </div>
         <div className="card p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Churn Rate</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{churnRateReal}%</p>
-          <p className="text-[10px] text-gray-400">{clientesChurned.length} cancelados</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{userChurnRate}%</p>
+          <p className="text-[10px] text-gray-400">{userClientesChurned.length} cancelados</p>
         </div>
       </div>
 

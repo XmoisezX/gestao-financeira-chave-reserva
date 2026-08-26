@@ -16,7 +16,9 @@ import {
   TrendingUp,
   Cloud,
   RefreshCw,
-  Check
+  Check,
+  Bell,
+  DollarSign
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -28,19 +30,36 @@ const TAB_TITLES = {
 };
 
 export const Header = () => {
-  const { user, logout, activeTab, theme, toggleTheme, isSyncing, lastSyncedAt, pushLocalStateToSupabase, fetchSupabaseData } = useApp();
+  const {
+    user, logout, activeTab, setActiveTab, theme, toggleTheme,
+    isSyncing, lastSyncedAt, pushLocalStateToSupabase,
+    notificacoes, markNotificacaoAsRead, markAllNotificacoesAsRead, deleteNotificacao, isAdmin
+  } = useApp();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
 
   const activeInfo = TAB_TITLES[activeTab] || { title: 'Dashboard', icon: LayoutDashboard };
   const ActiveIcon = activeInfo.icon;
 
-  // Close dropdown on click outside
+  const userNotificacoes = (notificacoes || []).filter(n => {
+    if (n.destinatario === 'ALL') return true;
+    if (isAdmin && n.destinatario === 'ADMIN') return true;
+    return n.destinatario === user?.name || n.destinatario === user?.email;
+  });
+
+  const unreadCount = userNotificacoes.filter(n => !n.lida).length;
+
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -86,6 +105,84 @@ export const Header = () => {
           >
             {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
+
+          {/* Notifications Bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              title="Notificações"
+              className="relative p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold ring-2 ring-white dark:ring-gray-950 animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notifications Popover */}
+            {notifOpen && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-3.5 h-3.5 text-amber-500" />
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-white">Notificações</h3>
+                    {unreadCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 font-semibold">
+                        {unreadCount} nova{unreadCount > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => markAllNotificacoesAsRead()}
+                      className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    >
+                      Marcar lidas
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                  {userNotificacoes.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-gray-400">
+                      Nenhuma notificação no momento.
+                    </div>
+                  ) : (
+                    userNotificacoes.map(n => (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          markNotificacaoAsRead(n.id);
+                          if (n.linkTab) setActiveTab(n.linkTab);
+                          setNotifOpen(false);
+                        }}
+                        className={`p-3 text-xs transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 ${
+                          !n.lida ? 'bg-amber-50/40 dark:bg-amber-950/20' : ''
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            {n.tipo === 'comissao' && <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>}
+                            {n.tipo === 'venda' && <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>}
+                            {n.tipo !== 'comissao' && n.tipo !== 'venda' && <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>}
+                            <p className="font-semibold text-gray-900 dark:text-white leading-tight">{n.titulo}</p>
+                          </div>
+                          <span className="text-[10px] text-gray-400 shrink-0">
+                            {new Date(n.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
+                          {n.mensagem}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="h-4 w-[1px] bg-gray-200 dark:bg-gray-800"></div>
 

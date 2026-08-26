@@ -29,7 +29,7 @@ const CHANNEL_ICONS = {
 };
 
 export const KanbanModule = () => {
-  const { leads, addLead, deleteLead, moveLeadStage, convertLeadToClient, planos } = useApp();
+  const { leads, addLead, deleteLead, moveLeadStage, convertLeadToClient, planos, isAdmin, user } = useApp();
 
   const [viewMode, setViewMode] = useState('kanban');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,12 +48,26 @@ export const KanbanModule = () => {
   const [convertFormData, setConvertFormData] = useState({ plano: 'Imobiliária Pro', mrr: 350, metodoPagamento: 'Pix', modulosAdicionais: [] });
 
   const filteredLeads = leads.filter(l => {
+    // Access control: sellers only see their assigned or created leads
+    if (!isAdmin && user) {
+      const isMyLead = l.vendedorResponsavel === user.name || l.responsavel === user.name || l.criadoPor === user.name || l.vendedorResponsavel === user.email;
+      const isUnassigned = !l.vendedorResponsavel && !l.responsavel;
+      if (!isMyLead && !isUnassigned) return false;
+    }
+
     const q = searchQuery.toLowerCase();
     const matchesSearch = l.nome.toLowerCase().includes(q) || l.empresa.toLowerCase().includes(q) || l.email.toLowerCase().includes(q);
     return matchesSearch && (selectedChannel === 'all' || l.canal === selectedChannel);
   });
 
-  const handleSaveNewLead = (e) => { e.preventDefault(); addLead(formData); setIsAddModalOpen(false); };
+  const handleSaveNewLead = (e) => {
+    e.preventDefault();
+    addLead({
+      ...formData,
+      vendedorResponsavel: formData.vendedorResponsavel || user?.name || ''
+    });
+    setIsAddModalOpen(false);
+  };
 
   const handleOpenConvertModal = (lead) => {
     setSelectedLeadForConvert(lead);

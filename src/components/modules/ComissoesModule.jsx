@@ -7,7 +7,8 @@ import {
 export const ComissoesModule = () => {
   const {
     clientes, addLancamentoDiario, updateCliente,
-    projecaoMensal, premissas, funcionarios, addAuditLog
+    projecaoMensal, premissas, funcionarios, addAuditLog,
+    isAdmin, user, addNotificacao
   } = useApp();
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -65,6 +66,13 @@ export const ComissoesModule = () => {
   const clientesComComissao = useMemo(() => {
     return clientes.filter(c => {
       if (c.status !== 'Ativo') return false;
+
+      // Access control: non-admin users only see clients they are responsible for
+      if (!isAdmin && user) {
+        const isMySale = c.vendedorResponsavel === user.name || c.vendedorResponsavel === user.email;
+        const isMySupport = c.suporteResponsavel === user.name || c.suporteResponsavel === user.email;
+        if (!isMySale && !isMySupport) return false;
+      }
 
       // Filter by month of entry (if not 'todos')
       if (selectedMonth !== 'todos' && c.dataEntrada) {
@@ -166,6 +174,17 @@ export const ComissoesModule = () => {
     }
 
     addAuditLog('Lançamento de Comissão', `Comissão de ${modalData.tipo === 'vendas' ? 'Vendas' : 'Suporte'} de R$${Number(modalData.valor).toFixed(2)} lançada para "${modalData.clienteNome}" em ${modalData.data}. Responsável: ${responsavel}`);
+
+    // Send real-time notification to the seller/support
+    if (responsavel) {
+      addNotificacao({
+        destinatario: responsavel,
+        titulo: `Comissão de ${modalData.tipo === 'vendas' ? 'Vendas' : 'Suporte'} Lançada!`,
+        mensagem: `Sua comissão no valor de R$ ${Number(modalData.valor).toFixed(2)} do cliente "${modalData.clienteNome}" foi lançada pelo Administrador.`,
+        tipo: 'comissao',
+        linkTab: 'comissoes'
+      });
+    }
 
     setIsModalOpen(false);
   };
@@ -329,27 +348,37 @@ export const ComissoesModule = () => {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {!c.comissaoVendaPaga && (
-                          <button
-                            onClick={() => openLancarModal(c, 'vendas')}
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors whitespace-nowrap"
-                          >
-                            Lançar Vendas
-                          </button>
-                        )}
-                        {!c.comissaoSuportePaga && (
-                          <button
-                            onClick={() => openLancarModal(c, 'suporte')}
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition-colors whitespace-nowrap"
-                          >
-                            Lançar Suporte
-                          </button>
-                        )}
-                        {c.comissaoVendaPaga && c.comissaoSuportePaga && (
-                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">✓ Completo</span>
-                        )}
-                      </div>
+                      {isAdmin ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {!c.comissaoVendaPaga && (
+                            <button
+                              onClick={() => openLancarModal(c, 'vendas')}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors whitespace-nowrap"
+                            >
+                              Lançar Vendas
+                            </button>
+                          )}
+                          {!c.comissaoSuportePaga && (
+                            <button
+                              onClick={() => openLancarModal(c, 'suporte')}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition-colors whitespace-nowrap"
+                            >
+                              Lançar Suporte
+                            </button>
+                          )}
+                          {c.comissaoVendaPaga && c.comissaoSuportePaga && (
+                            <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">✓ Completo</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {c.comissaoVendaPaga && c.comissaoSuportePaga ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">✅ Lançada / Paga</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">⏳ Aguardando Lançamento ADM</span>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );

@@ -38,6 +38,7 @@ const STORAGE_KEYS = {
   RESUMO_EXECUTIVO: 'chave_reserva_resumo_executivo_v1',
   FUNCIONARIOS: 'chave_reserva_funcionarios_v1',
   AUDIT_LOG: 'chave_reserva_audit_log_v1',
+  NOTIFICACOES: 'chave_reserva_notificacoes_v1',
 };
 
 export const AppProvider = ({ children }) => {
@@ -67,11 +68,57 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  // Notifications State
+  const [notificacoes, setNotificacoes] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICACOES);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  const addNotificacao = (notif) => {
+    const newNotif = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      destinatario: notif.destinatario || 'ALL', // 'ALL', 'ADMIN', or specific email / name
+      titulo: notif.titulo || 'Notificação',
+      mensagem: notif.mensagem || '',
+      tipo: notif.tipo || 'info', // 'comissao', 'venda', 'sistema', 'info'
+      linkTab: notif.linkTab || null,
+      lida: false
+    };
+
+    setNotificacoes(prev => {
+      const updated = [newNotif, ...prev].slice(0, 100);
+      localStorage.setItem(STORAGE_KEYS.NOTIFICACOES, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const markNotificacaoAsRead = (id) => {
+    setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
+  };
+
+  const markAllNotificacoesAsRead = () => {
+    setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
+  };
+
+  const deleteNotificacao = (id) => {
+    setNotificacoes(prev => prev.filter(n => n.id !== id));
+  };
+
   // User session state
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.USER);
     return saved ? JSON.parse(saved) : null;
   });
+
+  const isAdmin = Boolean(
+    user?.role === 'Administrador' ||
+    user?.role === 'Gestor' ||
+    user?.email?.toLowerCase().trim() === 'moiseztorres100@gmail.com' ||
+    user?.email?.toLowerCase().trim() === 'moisez.torres@sou.ucpel.edu.br'
+  );
 
   const login = async (emailInput, passwordInput) => {
     const cleanEmail = (emailInput || '').toLowerCase().trim();
@@ -363,6 +410,7 @@ export const AppProvider = ({ children }) => {
         { key: STORAGE_KEYS.RESUMO_EXECUTIVO, value: resumoExecutivo },
         { key: STORAGE_KEYS.FUNCIONARIOS, value: funcionarios },
         { key: STORAGE_KEYS.AUDIT_LOG, value: auditLog },
+        { key: STORAGE_KEYS.NOTIFICACOES, value: notificacoes },
       ];
 
       for (const item of itemsToSync) {
@@ -406,6 +454,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.LANCAMENTOS) setLancamentos(item.value);
           if (item.key === STORAGE_KEYS.FUNCIONARIOS) setFuncionarios(item.value);
           if (item.key === STORAGE_KEYS.AUDIT_LOG) setAuditLog(item.value);
+          if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
         });
         setLastSyncedAt(new Date());
       }
@@ -441,6 +490,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.LANCAMENTOS && item.value) setLancamentos(item.value);
           if (item.key === STORAGE_KEYS.FUNCIONARIOS && item.value) setFuncionarios(item.value);
           if (item.key === STORAGE_KEYS.AUDIT_LOG && item.value) setAuditLog(item.value);
+          if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
           localStorage.setItem(item.key, JSON.stringify(item.value));
           setLastSyncedAt(new Date());
         }
@@ -468,6 +518,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { syncData(STORAGE_KEYS.RESUMO_EXECUTIVO, resumoExecutivo); }, [resumoExecutivo]);
   useEffect(() => { syncData(STORAGE_KEYS.FUNCIONARIOS, funcionarios); }, [funcionarios]);
   useEffect(() => { syncData(STORAGE_KEYS.AUDIT_LOG, auditLog); }, [auditLog]);
+  useEffect(() => { syncData(STORAGE_KEYS.NOTIFICACOES, notificacoes); }, [notificacoes]);
 
   // Always enforce fresh engine calculation for projecaoMensal when premissas or plans change
   useEffect(() => {
@@ -1365,9 +1416,15 @@ export const AppProvider = ({ children }) => {
       totalGastoTrafegoReal,
       totalNovosClientesReal,
       cacMedioReal,
-      // Audit
+      // Audit & Notifications
       auditLog,
       addAuditLog,
+      notificacoes,
+      addNotificacao,
+      markNotificacaoAsRead,
+      markAllNotificacoesAsRead,
+      deleteNotificacao,
+      isAdmin,
       // Cloud Sync Status & Actions
       isSyncing,
       lastSyncedAt,
