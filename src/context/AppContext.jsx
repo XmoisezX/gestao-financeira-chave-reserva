@@ -45,6 +45,25 @@ export const AppProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activeSubTab, setActiveSubTab] = useState('projecao');
 
+  // Theme: 'light' (default) or 'dark'
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+  }, [theme]);
+
   // Audit Log
   const [auditLog, setAuditLog] = useState(() => {
     try {
@@ -52,6 +71,137 @@ export const AppProvider = ({ children }) => {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+
+  // Notifications State
+  const [notificacoes, setNotificacoes] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICACOES);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  // User session state
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.USER);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // Main state with localStorage fallback
+  const [leads, setLeads] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.LEADS);
+    return saved ? JSON.parse(saved) : initialLeads;
+  });
+
+  const [clientes, setClientes] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CLIENTES);
+    return saved ? JSON.parse(saved) : initialClientes;
+  });
+
+  const [lancamentos, setLancamentos] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.LANCAMENTOS);
+    return saved ? JSON.parse(saved) : initialLancamentosDiarios;
+  });
+
+  const [funcionarios, setFuncionarios] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.FUNCIONARIOS);
+    let list = saved ? JSON.parse(saved) : initialFuncionarios;
+    
+    // Garantir que Moisés Torres esteja sempre cadastrado na lista de usuários
+    const hasMoises = (list || []).some(f => f.email && f.email.toLowerCase().trim() === 'moiseztorres100@gmail.com');
+    if (!hasMoises) {
+      const moisesUser = {
+        id: 'func-1',
+        nome: 'Moisés Torres',
+        cargo: 'Administrador',
+        custoMensal: 5000,
+        status: 'Ativo',
+        cpf: '000.000.000-00',
+        pix: 'moiseztorres100@gmail.com',
+        email: 'moiseztorres100@gmail.com',
+        senha: 'Geral123@'
+      };
+      const adminPrincipalIdx = (list || []).findIndex(f => f.nome === 'Admin Principal');
+      if (adminPrincipalIdx !== -1) {
+        list[adminPrincipalIdx] = moisesUser;
+      } else {
+        list = [moisesUser, ...(list || [])];
+      }
+    }
+    return list;
+  });
+
+  // Editable Metas Sub-tab Datasets
+  const [projecaoMensal, setProjecaoMensal] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PROJECAO_MENSAL);
+    const initial = saved ? JSON.parse(saved) : initialProjecaoMensal;
+    const cleared = initial.map(p => ({ ...p, isManualMrrMeta: false }));
+    return recalculateProjecaoMensal({
+      projecaoCurrent: cleared,
+      premissas: initialPremissas,
+      planos: initialPlanos,
+      aluguel: initialAluguel,
+      pacotes: initialPacotes,
+      aquisicao: initialAquisicao,
+      infraestrutura: initialInfraestrutura,
+      equipe: initialEquipe,
+      taxasPagamento: initialTaxasPagamento
+    });
+  });
+
+  const [planos, setPlanos] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PLANOS);
+    return saved ? JSON.parse(saved) : initialPlanos;
+  });
+
+  const [aluguel, setAluguel] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.ALUGUEL);
+    return saved ? JSON.parse(saved) : initialAluguel;
+  });
+
+  const [pacotes, setPacotes] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PACOTES);
+    return saved ? JSON.parse(saved) : initialPacotes;
+  });
+
+  const [equipe, setEquipe] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.EQUIPE);
+    return saved ? JSON.parse(saved) : initialEquipe;
+  });
+
+  const [infraestrutura, setInfraestrutura] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.INFRAESTRUTURA);
+    return saved ? JSON.parse(saved) : initialInfraestrutura;
+  });
+
+  const [aquisicao, setAquisicao] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.AQUISICAO);
+    return saved ? JSON.parse(saved) : initialAquisicao;
+  });
+
+  const [premissas, setPremissas] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PREMISSAS);
+    return saved ? JSON.parse(saved) : initialPremissas;
+  });
+
+  const [taxasPagamento, setTaxasPagamento] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.TAXAS_PAGAMENTO);
+    return saved ? JSON.parse(saved) : initialTaxasPagamento;
+  });
+
+  const [resumoExecutivo, setResumoExecutivo] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.RESUMO_EXECUTIVO);
+    return saved ? JSON.parse(saved) : initialResumoExecutivo;
+  });
+
+  const isSupabaseLoaded = useRef(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+
+  // Computed Roles & Actions
+  const isAdmin = Boolean(
+    user?.role === 'Administrador' ||
+    user?.role === 'Gestor'
+  );
 
   const addAuditLog = (action, details, userName) => {
     const entry = {
@@ -67,14 +217,6 @@ export const AppProvider = ({ children }) => {
       return updated;
     });
   };
-
-  // Notifications State
-  const [notificacoes, setNotificacoes] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICACOES);
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
 
   const addNotificacao = (notif) => {
     const newNotif = {
@@ -106,17 +248,6 @@ export const AppProvider = ({ children }) => {
   const deleteNotificacao = (id) => {
     setNotificacoes(prev => prev.filter(n => n.id !== id));
   };
-
-  // User session state
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.USER);
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const isAdmin = Boolean(
-    user?.role === 'Administrador' ||
-    user?.role === 'Gestor'
-  );
 
   // Keep logged in user role synchronized dynamically with the funcionarios table
   useEffect(() => {
@@ -254,136 +385,6 @@ export const AppProvider = ({ children }) => {
       return newUser;
     });
   };
-
-  // Theme: 'light' (default) or 'dark'
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
-  });
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem(STORAGE_KEYS.THEME, theme);
-  }, [theme]);
-
-  // Main state with localStorage fallback
-  const [leads, setLeads] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.LEADS);
-    return saved ? JSON.parse(saved) : initialLeads;
-  });
-
-  const [clientes, setClientes] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CLIENTES);
-    return saved ? JSON.parse(saved) : initialClientes;
-  });
-
-  const [lancamentos, setLancamentos] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.LANCAMENTOS);
-    return saved ? JSON.parse(saved) : initialLancamentosDiarios;
-  });
-
-  const [funcionarios, setFuncionarios] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.FUNCIONARIOS);
-    let list = saved ? JSON.parse(saved) : initialFuncionarios;
-    
-    // Garantir que Moisés Torres esteja sempre cadastrado na lista de usuários
-    const hasMoises = (list || []).some(f => f.email && f.email.toLowerCase().trim() === 'moiseztorres100@gmail.com');
-    if (!hasMoises) {
-      const moisesUser = {
-        id: 'func-1',
-        nome: 'Moisés Torres',
-        cargo: 'Administrador',
-        custoMensal: 5000,
-        status: 'Ativo',
-        cpf: '000.000.000-00',
-        pix: 'moiseztorres100@gmail.com',
-        email: 'moiseztorres100@gmail.com',
-        senha: 'Geral123@'
-      };
-      const adminPrincipalIdx = (list || []).findIndex(f => f.nome === 'Admin Principal');
-      if (adminPrincipalIdx !== -1) {
-        list[adminPrincipalIdx] = moisesUser;
-      } else {
-        list = [moisesUser, ...(list || [])];
-      }
-    }
-    return list;
-  });
-
-  // Editable Metas Sub-tab Datasets
-  const [projecaoMensal, setProjecaoMensal] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PROJECAO_MENSAL);
-    const initial = saved ? JSON.parse(saved) : initialProjecaoMensal;
-    const cleared = initial.map(p => ({ ...p, isManualMrrMeta: false }));
-    return recalculateProjecaoMensal({
-      projecaoCurrent: cleared,
-      premissas: initialPremissas,
-      planos: initialPlanos,
-      aluguel: initialAluguel,
-      pacotes: initialPacotes,
-      aquisicao: initialAquisicao,
-      infraestrutura: initialInfraestrutura,
-      equipe: initialEquipe,
-      taxasPagamento: initialTaxasPagamento
-    });
-  });
-
-  const [planos, setPlanos] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PLANOS);
-    return saved ? JSON.parse(saved) : initialPlanos;
-  });
-
-  const [aluguel, setAluguel] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.ALUGUEL);
-    return saved ? JSON.parse(saved) : initialAluguel;
-  });
-
-  const [pacotes, setPacotes] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PACOTES);
-    return saved ? JSON.parse(saved) : initialPacotes;
-  });
-
-  const [equipe, setEquipe] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.EQUIPE);
-    return saved ? JSON.parse(saved) : initialEquipe;
-  });
-
-  const [infraestrutura, setInfraestrutura] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.INFRAESTRUTURA);
-    return saved ? JSON.parse(saved) : initialInfraestrutura;
-  });
-
-  const [aquisicao, setAquisicao] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.AQUISICAO);
-    return saved ? JSON.parse(saved) : initialAquisicao;
-  });
-
-  const [premissas, setPremissas] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PREMISSAS);
-    return saved ? JSON.parse(saved) : initialPremissas;
-  });
-
-  const [taxasPagamento, setTaxasPagamento] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.TAXAS_PAGAMENTO);
-    return saved ? JSON.parse(saved) : initialTaxasPagamento;
-  });
-
-  const [resumoExecutivo, setResumoExecutivo] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.RESUMO_EXECUTIVO);
-    return saved ? JSON.parse(saved) : initialResumoExecutivo;
-  });
-
-  const isSupabaseLoaded = useRef(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
   // Helper for dual persistence (LocalStorage + Supabase DB)
   const syncData = async (key, data) => {
