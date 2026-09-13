@@ -386,7 +386,197 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  // Helper for dual persistence (LocalStorage + Supabase DB)
+  // Helper to sync data to dedicated relational tables in Supabase
+  const syncRelationalTable = async (key, data) => {
+    try {
+      if (key === STORAGE_KEYS.PROJECAO_MENSAL && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          month: p.month,
+          clientes_ativos_meta: p.clientesAtivosMeta || p.clientesAtivos || 0,
+          churn: p.churn || 0,
+          novos_liquidos_meta: p.novosLiquidosMeta || p.novosClientes || 0,
+          is_locked_novos: p.isLockedNovos || false,
+          novos_brutos_necessarios: p.novosBrutosNecessarios || 0,
+          mrr_meta: p.mrrMeta || 0,
+          mrr_aluguel: p.mrrAluguel || 0,
+          mrr_pacotes: p.mrrPacotes || 0,
+          mrr_total: p.mrrTotal || 0,
+          receita_empresa: p.receitaEmpresa || 0,
+          comissao_vendas: p.comissaoVendas || 0,
+          comissao_suporte: p.comissaoSuporte || 0,
+          novos_trafego: p.novosTrafego || 0,
+          cac_trafego: p.cacTrafego || 0,
+          investimento_trafego: p.investimentoTrafego || 0,
+          novos_lista: p.novosLista || 0,
+          contatos_frios: p.contatosFrios || 0,
+          custo_lista_fria: p.custoListaFria || 0,
+          novos_influencer: p.novosInfluencer || 0,
+          custo_1a_influencer: p.custo1aInfluencer || 0,
+          custo_recorrente_influencer: p.custoRecorrenteInfluencer || 0,
+          pro_labore_dev: p.proLaboreDev || 0,
+          pro_labore_gestor: p.proLaboreGestor || 0,
+          pro_labore_mkt: p.proLaboreMkt || 0,
+          pro_labore_fin: p.proLaboreFin || 0,
+          suporte_fixo: p.suporteFixo || 0,
+          apoio_tecnico: p.apoioTecnico || 0,
+          sdr: p.sdr || 0,
+          infraestrutura: p.infraestrutura || 0,
+          taxas_pagamento: p.taxasPagamento || 0,
+          impostos: p.impostos || 0,
+          resultado_bruto: p.resultadoBruto || 0,
+          resultado_liquido: p.resultadoLiquido || 0,
+          receita_caixa: p.receitaCaixa || 0,
+          impostos_caixa_8: p.impostosCaixa8 || 0,
+          resultado_caixa: p.resultadoCaixa || 0,
+          saldo_caixa_acumulado: p.saldoCaixaAcumulado || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('projecao_mensal').upsert(formatted, { onConflict: 'month' });
+      } else if (key === STORAGE_KEYS.PLANOS && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          plano: p.plano,
+          mensal: p.mensal || 0,
+          anual_mensal: p.anualMensal || 0,
+          anual_vista: p.anualVista || 0,
+          previsao_vendas: p.previsaoVendas || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('planos').upsert(formatted, { onConflict: 'plano' });
+      } else if (key === STORAGE_KEYS.PREMISSAS && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          premissa: p.premissa,
+          valor: String(p.valor || ''),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('premissas').upsert(formatted, { onConflict: 'premissa' });
+      } else if (key === STORAGE_KEYS.ALUGUEL && Array.isArray(data) && data.length > 0) {
+        await supabase.from('aluguel').delete().neq('id', 0);
+        const formatted = data.map(a => ({
+          plano: a.plano,
+          mensal: a.mensal || 0,
+          anual_mensal: a.anualMensal || 0,
+          anual_vista: a.anualVista || 0,
+          previsao_vendas: a.previsaoVendas || 0,
+          vendido_base: a.vendidoBase || '',
+          previsao_lancamento: a.previsaoLancamento || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('aluguel').insert(formatted);
+      } else if (key === STORAGE_KEYS.PACOTES && Array.isArray(data) && data.length > 0) {
+        await supabase.from('pacotes').delete().neq('id', 0);
+        const formatted = data.map(p => ({
+          pacote: p.pacote,
+          qtd: p.qtd || 1,
+          valor: p.valor || 0,
+          previsao_vendas: p.previsaoVendas || 0,
+          vendido_base: p.vendidoBase || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('pacotes').insert(formatted);
+      } else if (key === STORAGE_KEYS.EQUIPE && Array.isArray(data) && data.length > 0) {
+        await supabase.from('equipe').delete().neq('id', 0);
+        const formatted = data.map(e => ({
+          area: e.area,
+          modelo: e.modelo || '',
+          remuneracao: e.remuneracao || '',
+          gatilho: e.gatilho || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('equipe').insert(formatted);
+      } else if (key === STORAGE_KEYS.INFRAESTRUTURA && Array.isArray(data) && data.length > 0) {
+        await supabase.from('infraestrutura').delete().neq('id', 0);
+        const formatted = data.map(i => ({
+          faixa: i.faixa,
+          total: i.total || 0,
+          itens: i.itens || [],
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('infraestrutura').insert(formatted);
+      } else if (key === STORAGE_KEYS.AQUISICAO && Array.isArray(data) && data.length > 0) {
+        await supabase.from('aquisicao').delete().neq('id', 0);
+        const formatted = data.map(a => ({
+          canal: a.canal,
+          participacao: a.participacao || '',
+          regra: a.regra || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('aquisicao').insert(formatted);
+      } else if (key === STORAGE_KEYS.TAXAS_PAGAMENTO && Array.isArray(data) && data.length > 0) {
+        await supabase.from('taxas_pagamento').delete().neq('id', 0);
+        const formatted = data.map(t => ({
+          metodo: t.metodo,
+          taxa_fixa: t.taxaFixa || 0,
+          taxa_var: t.taxaVar || 0,
+          uso: t.uso || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('taxas_pagamento').insert(formatted);
+      } else if (key === STORAGE_KEYS.RESUMO_EXECUTIVO && data) {
+        await supabase.from('resumo_executivo').upsert({
+          key_name: 'main_summary',
+          data: data,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key_name' });
+      } else if (key === STORAGE_KEYS.LEADS && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(l => ({
+            id: String(l.id),
+            nome: l.nome,
+            empresa: l.empresa || '',
+            email: l.email || '',
+            telefone: l.telefone || '',
+            plano_interesse: l.planoInteresse || l.plano || '',
+            mrr_estimado: l.mrrEstimado || l.mrr || 0,
+            canal: l.canal || '',
+            estagio: l.estagio || '',
+            data_criacao: l.dataCriacao || l.data || new Date().toISOString().split('T')[0],
+            observacoes: l.observacoes || l.observacao || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('leads').upsert(formatted, { onConflict: 'id' });
+        }
+      } else if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(c => ({
+            id: String(c.id),
+            nome: c.nome,
+            empresa: c.empresa || '',
+            email: c.email || '',
+            telefone: c.telefone || '',
+            plano: c.plano || '',
+            mrr: c.mrr || 0,
+            modulos_adicionais: c.modulosAdicionais || [],
+            metodo_pagamento: c.metodoPagamento || '',
+            status: c.status || 'Ativo',
+            data_entrada: c.dataEntrada || new Date().toISOString().split('T')[0],
+            data_cancelamento: c.dataCancelamento || null,
+            canal_origem: c.canalOrigem || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('clientes').upsert(formatted, { onConflict: 'id' });
+        }
+      } else if (key === STORAGE_KEYS.LANCAMENTOS && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(l => ({
+            id: String(l.id),
+            data: l.data || new Date().toISOString().split('T')[0],
+            novos_clientes: l.novosClientes || 0,
+            gasto_trafego: l.gastoTrafego || 0,
+            comissoes_pagas: l.comissaoVendas || l.comissoesPagas || 0,
+            custos_operacionais: l.custosOperacionais || 0,
+            receita_reais: l.receitaReais || 0,
+            observacoes: l.observacao || l.observacoes || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('lancamentos_diarios').upsert(formatted, { onConflict: 'id' });
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao atualizar tabela relacional Supabase:', key, err);
+    }
+  };
+
+  // Helper for dual persistence (LocalStorage + Supabase app_state + Supabase Relational Tables)
   const syncData = async (key, data) => {
     localStorage.setItem(key, JSON.stringify(data));
     
@@ -395,11 +585,16 @@ export const AppProvider = ({ children }) => {
     if (!isSupabaseLoaded.current) return;
 
     try {
+      // 1. Sync to app_state key-value store
       await supabase.from('app_state').upsert({
         key,
         value: data,
         updated_at: new Date().toISOString()
       });
+
+      // 2. Sync to dedicated individual relational table
+      await syncRelationalTable(key, data);
+
       setLastSyncedAt(new Date());
     } catch (err) {
       console.warn('Erro ao sincronizar chave com Supabase:', key, err);
@@ -435,6 +630,7 @@ export const AppProvider = ({ children }) => {
           value: item.value,
           updated_at: new Date().toISOString()
         });
+        await syncRelationalTable(item.key, item.value);
       }
       setLastSyncedAt(new Date());
       return { success: true };
@@ -966,6 +1162,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteLead = (id) => {
     setLeads(prev => prev.filter(l => l.id !== id));
+    supabase.from('leads').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   const moveLeadStage = (id, newStage) => {
@@ -1144,6 +1341,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteCliente = (id) => {
     setClientes(prev => prev.filter(c => c.id !== id));
+    supabase.from('clientes').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   // Daily Real Log CRUD
@@ -1164,6 +1362,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteLancamentoDiario = (id) => {
     setLancamentos(prev => prev.filter(l => l.id !== id));
+    supabase.from('lancamentos_diarios').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   // Reset to initial defaults
