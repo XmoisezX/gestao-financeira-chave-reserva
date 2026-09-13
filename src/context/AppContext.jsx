@@ -39,6 +39,7 @@ const STORAGE_KEYS = {
   FUNCIONARIOS: 'chave_reserva_funcionarios_v1',
   AUDIT_LOG: 'chave_reserva_audit_log_v1',
   NOTIFICACOES: 'chave_reserva_notificacoes_v1',
+  BRAND: 'chave_reserva_custom_brand_v1',
 };
 
 export const AppProvider = ({ children }) => {
