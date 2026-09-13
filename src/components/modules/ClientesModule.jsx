@@ -60,24 +60,6 @@ export const ClientesModule = () => {
     return cargoStr.includes('suporte') || cargoStr.includes('apoio técnico') || cargoStr.includes('administrador');
   }, [valData.vendedorResponsavel, user, isSupport, funcionarios, isAdmin]);
 
-  const getRouletteSupportAgent = () => {
-    const activeSupport = (funcionarios || []).filter(f => 
-      f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')
-    );
-    if (activeSupport.length === 0) {
-      const adminFallback = (funcionarios || []).filter(f => f.status === 'Ativo' && f.cargo === 'Administrador');
-      if (adminFallback.length > 0) return adminFallback[0].nome;
-      return 'Equipe Suporte';
-    }
-    // Fair distribution based on active client count
-    const supportWithCounts = activeSupport.map(agent => ({
-      name: agent.nome,
-      count: (clientes || []).filter(c => c.suporteResponsavel === agent.nome && c.status === 'Ativo').length
-    }));
-    supportWithCounts.sort((a, b) => a.count - b.count);
-    return supportWithCounts[0].name;
-  };
-
   const getSellerInfo = (sellerName) => {
     if (!sellerName) return { name: '—', photoUrl: null, initial: '?' };
     const norm = sellerName.toLowerCase().trim();
@@ -727,7 +709,7 @@ export const ClientesModule = () => {
                           <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
                         ))}
                       </select>
-                    ) : valData.modalidade === 'anualVista' ? (
+                    ) : (valData.modalidade === 'anualVista' && assignedSellerHasSupport) ? (
                       <div className="p-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-1.5">
                         <label className="flex items-start gap-2 cursor-pointer select-none">
                           <input
