@@ -81,21 +81,14 @@ export const Header = () => {
         {/* Right Section (Canto Superior Direito) */}
         <div className="flex items-center gap-3">
 
-          {/* Cloud Sync Button / Indicator */}
-          <button
-            onClick={async () => {
-              const res = await pushLocalStateToSupabase();
-              if (res?.success) {
-                alert('Dados sincronizados com o Supabase com sucesso! Todas as alterações estão na nuvem.');
-              }
-            }}
-            disabled={isSyncing}
-            title={lastSyncedAt ? `Última sincronização: ${lastSyncedAt.toLocaleTimeString('pt-BR')}` : 'Sincronizar com a nuvem'}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-800"
+          {/* Auto-Sync Cloud Status Indicator */}
+          <div
+            title={lastSyncedAt ? `Sincronização automática ativa (Última gravação: ${lastSyncedAt.toLocaleTimeString('pt-BR')})` : 'Sincronização automática em tempo real ativa'}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 select-none"
           >
-            <Cloud className={`w-3.5 h-3.5 ${isSyncing ? 'text-amber-500 animate-spin' : 'text-emerald-500'}`} />
-            <span className="hidden sm:inline">{isSyncing ? 'Sincronizando...' : 'Salvar na Nuvem'}</span>
-          </button>
+            <span className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'}`}></span>
+            <span className="hidden sm:inline">{isSyncing ? 'Salvando...' : 'Nuvem Conectada'}</span>
+          </div>
 
           {/* Theme Toggle */}
           <button
