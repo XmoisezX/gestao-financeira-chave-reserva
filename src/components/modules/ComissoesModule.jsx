@@ -390,73 +390,81 @@ export const ComissoesModule = () => {
 
       {/* Modal de Lançamento de Comissão */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-md w-full p-5 space-y-4 shadow-xl">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 Lançar Comissão de {modalData.tipo === 'vendas' ? 'Vendas' : 'Suporte'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 text-xs space-y-1">
-              <p className="text-gray-500">Cliente: <strong className="text-gray-900 dark:text-white">{modalData.clienteNome}</strong></p>
-              {modalData.infoBase && <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">{modalData.infoBase}</p>}
-            </div>
+            <form onSubmit={handleLancarComissao} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 text-xs space-y-1 border border-gray-100 dark:border-gray-800">
+                  <p className="text-gray-500">Cliente: <strong className="text-gray-900 dark:text-white">{modalData.clienteNome}</strong></p>
+                  {modalData.infoBase && <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">{modalData.infoBase}</p>}
+                </div>
 
-            <form onSubmit={handleLancarComissao} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                  {modalData.tipo === 'vendas' ? 'Vendedor Responsável *' : 'Suporte Responsável *'}
-                </label>
-                <select
-                  required
-                  value={modalData.responsavel || ''}
-                  onChange={e => setModalData({ ...modalData, responsavel: e.target.value })}
-                  className={inputCls}
-                >
-                  <option value="">Selecione o responsável...</option>
-                  {(funcionarios || [])
-                    .filter(f => f.status === 'Ativo')
-                    .map(f => (
-                      <option key={f.id} value={f.nome}>
-                        {f.nome} ({f.cargo}) {f.nome === modalData.originalResponsavel ? '— [Validado]' : ''}
-                      </option>
-                    ))}
-                </select>
-                {modalData.originalResponsavel && modalData.responsavel !== modalData.originalResponsavel && (
-                  <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
-                    ⚠️ Alterado de "{modalData.originalResponsavel}" (esta mudança ficará registrada na auditoria).
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Valor (R$) *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    {modalData.tipo === 'vendas' ? 'Vendedor Responsável' : 'Suporte Responsável'} <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select
                     required
-                    value={modalData.valor}
-                    onChange={e => setModalData({ ...modalData, valor: e.target.value })}
+                    value={modalData.responsavel || ''}
+                    onChange={e => setModalData({ ...modalData, responsavel: e.target.value })}
                     className={inputCls}
-                  />
+                  >
+                    <option value="">Selecione o responsável...</option>
+                    {(funcionarios || [])
+                      .filter(f => f.status === 'Ativo')
+                      .map(f => (
+                        <option key={f.id} value={f.nome}>
+                          {f.nome} ({f.cargo}) {f.nome === modalData.originalResponsavel ? '— [Validado]' : ''}
+                        </option>
+                      ))}
+                  </select>
+                  {modalData.originalResponsavel && modalData.responsavel !== modalData.originalResponsavel && (
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                      ⚠️ Alterado de "{modalData.originalResponsavel}" (esta mudança ficará registrada na auditoria).
+                    </p>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Data do Pagamento *</label>
-                  <input
-                    type="date"
-                    required
-                    value={modalData.data}
-                    onChange={e => setModalData({ ...modalData, data: e.target.value })}
-                    className={inputCls}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Valor (R$) <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                      value={modalData.valor}
+                      onChange={e => setModalData({ ...modalData, valor: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Data do Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={modalData.data}
+                      onChange={e => setModalData({ ...modalData, data: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
-                <button type="submit" className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white shadow-sm ${
+
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button type="submit" className={`px-4 py-2 rounded-lg text-xs font-medium text-white shadow-sm transition-colors ${
                   modalData.tipo === 'vendas' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-teal-600 hover:bg-teal-700'
                 }`}>
                   Confirmar Lançamento

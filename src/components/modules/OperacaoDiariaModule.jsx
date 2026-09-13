@@ -726,10 +726,10 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
 
       {/* ===== MODAL DE DETALHES DA OPERAÇÃO / LANÇAMENTO ===== */}
       {selectedLancamento && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/70 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="shrink-0 p-5 sm:p-6 pb-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start bg-white dark:bg-gray-900 z-10">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${getLancamentoTypeInfo(selectedLancamento).badgeBg}`}>
@@ -752,200 +752,146 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
               </button>
             </div>
 
-            {/* Top Cards Resumo Rápido */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
-                <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-indigo-500" /> Data Lançamento
-                </span>
-                <p className="text-xs font-bold text-gray-900 dark:text-white mt-1">
-                  {formatDateBR(selectedLancamento.data)}
-                </p>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">{selectedLancamento.data}</span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
-                <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-amber-500" /> Mês de Referência
-                </span>
-                <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
-                  {selectedLancamento.mesReferencia || '—'}
-                </p>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Competência</span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
-                <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
-                  <Users className="w-3 h-3 text-emerald-500" /> Novos Clientes
-                </span>
-                <p className="text-xs font-bold text-green-600 dark:text-green-400 mt-1">
-                  +{selectedLancamento.novosClientes || 0}
-                </p>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Ativações no dia</span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
-                <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
-                  <DollarSign className="w-3 h-3 text-indigo-500" /> Valor Principal
-                </span>
-                <p className="text-xs font-bold text-gray-900 dark:text-white mt-1">
-                  {Number(selectedLancamento.receitaReais) > 0 ? (
-                    <span className="text-green-600 dark:text-green-400">+{formatCurrencyPrecise(selectedLancamento.receitaReais)}</span>
-                  ) : Number(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0) > 0 ? (
-                    <span className="text-indigo-600 dark:text-indigo-400">-{formatCurrencyPrecise(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0)}</span>
-                  ) : Number(selectedLancamento.comissaoSuporte || 0) > 0 ? (
-                    <span className="text-teal-600 dark:text-teal-400">-{formatCurrencyPrecise(selectedLancamento.comissaoSuporte)}</span>
-                  ) : Number(selectedLancamento.gastoTrafego) > 0 ? (
-                    <span className="text-blue-600 dark:text-blue-400">-{formatCurrencyPrecise(selectedLancamento.gastoTrafego)}</span>
-                  ) : Number(selectedLancamento.custosOperacionais) > 0 ? (
-                    <span className="text-rose-600 dark:text-rose-400">-{formatCurrencyPrecise(selectedLancamento.custosOperacionais)}</span>
-                  ) : Number(selectedLancamento.aportesFinanceiros) > 0 ? (
-                    <span className="text-purple-600 dark:text-purple-400">+{formatCurrencyPrecise(selectedLancamento.aportesFinanceiros)}</span>
-                  ) : (
-                    'R$ 0,00'
-                  )}
-                </p>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Impacto Direto</span>
-              </div>
-            </div>
-
-            {/* Observações e Descrição Completa */}
-            <div className="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Observações & Informações da Operação</span>
-              </div>
-              <p className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed bg-white dark:bg-gray-950 p-3 rounded-lg border border-gray-200/80 dark:border-gray-800/80 font-normal select-text whitespace-pre-wrap">
-                {selectedLancamento.observacao || 'Nenhuma observação informada para este lançamento.'}
-              </p>
-            </div>
-
-            {/* Dados do Cliente Vinculado (se houver) */}
-            {linkedClient && (
-              <div className="bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    <h4 className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                      Cliente / Empresa Vinculada
-                    </h4>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    linkedClient.status === 'Ativo' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                  }`}>
-                    {linkedClient.status || 'Ativo'}
-                  </span>
+            {/* Scrollable Modal Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+              {/* Observações e Descrição Completa */}
+              <div className="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Observações & Informações da Operação</span>
                 </div>
+                <p className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed bg-white dark:bg-gray-950 p-3 rounded-lg border border-gray-200/80 dark:border-gray-800/80 font-normal select-text whitespace-pre-wrap">
+                  {selectedLancamento.observacao || 'Nenhuma observação informada para este lançamento.'}
+                </p>
+              </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-white dark:bg-gray-900/90 p-3 rounded-lg border border-indigo-100/80 dark:border-indigo-900/40">
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Empresa</span>
-                    <strong className="text-gray-900 dark:text-white font-semibold">{linkedClient.empresa || linkedClient.nome}</strong>
+              {/* Dados do Cliente Vinculado (se houver) */}
+              {linkedClient && (
+                <div className="bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                      <h4 className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                        Cliente / Empresa Vinculada
+                      </h4>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      linkedClient.status === 'Ativo' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                    }`}>
+                      {linkedClient.status || 'Ativo'}
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Contato</span>
-                    <span className="text-gray-700 dark:text-gray-300">{linkedClient.nome || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">CPF/CNPJ</span>
-                    <span className="text-gray-700 dark:text-gray-300 font-mono text-[11px]">{linkedClient.cpfCnpj || linkedClient.documento || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Plano / Ciclo</span>
-                    <span className="text-gray-700 dark:text-gray-300">{linkedClient.plano || '—'} ({linkedClient.ciclo || 'Mensal'})</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">MRR Contratado</span>
-                    <strong className="text-green-600 dark:text-green-400 font-semibold">{formatCurrencyPrecise(linkedClient.mrr)}</strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Data de Entrada</span>
-                    <span className="text-gray-700 dark:text-gray-300">{formatDateBR(linkedClient.dataEntrada)}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Vendedor Responsável</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">{linkedClient.vendedorResponsavel || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">Suporte Responsável</span>
-                    <span className="text-teal-600 dark:text-teal-400 font-medium">{linkedClient.suporteResponsavel || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-medium">E-mail</span>
-                    <span className="text-gray-700 dark:text-gray-300 truncate block text-[11px]" title={linkedClient.email}>{linkedClient.email || '—'}</span>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-white dark:bg-gray-900/90 p-3 rounded-lg border border-indigo-100/80 dark:border-indigo-900/40">
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Empresa</span>
+                      <strong className="text-gray-900 dark:text-white font-semibold">{linkedClient.empresa || linkedClient.nome}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Contato</span>
+                      <span className="text-gray-700 dark:text-gray-300">{linkedClient.nome || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">CPF/CNPJ</span>
+                      <span className="text-gray-700 dark:text-gray-300 font-mono text-[11px]">{linkedClient.cpfCnpj || linkedClient.documento || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Plano / Ciclo</span>
+                      <span className="text-gray-700 dark:text-gray-300">{linkedClient.plano || '—'} ({linkedClient.ciclo || 'Mensal'})</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">MRR Contratado</span>
+                      <strong className="text-green-600 dark:text-green-400 font-semibold">{formatCurrencyPrecise(linkedClient.mrr)}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Data de Entrada</span>
+                      <span className="text-gray-700 dark:text-gray-300">{formatDateBR(linkedClient.dataEntrada)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Vendedor Responsável</span>
+                      <span className="text-indigo-600 dark:text-indigo-400 font-medium">{linkedClient.vendedorResponsavel || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">Suporte Responsável</span>
+                      <span className="text-teal-600 dark:text-teal-400 font-medium">{linkedClient.suporteResponsavel || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-medium">E-mail</span>
+                      <span className="text-gray-700 dark:text-gray-300 truncate block text-[11px]" title={linkedClient.email}>{linkedClient.email || '—'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Detalhamento Financeiro Completo da Linha */}
-            <div>
-              <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-amber-500" />
-                <span>Discriminação Financeira Completa do Lançamento</span>
-              </h4>
-              <div className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl">
-                <table className="w-full text-xs text-left">
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Receita Bruta Realizada</td>
-                      <td className="px-3.5 py-2 text-right font-bold text-gray-900 dark:text-white">
-                        {formatCurrencyPrecise(selectedLancamento.receitaReais)}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Comissão de Vendas</td>
-                      <td className="px-3.5 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">
-                        {formatCurrencyPrecise(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0)}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Comissão de Suporte</td>
-                      <td className="px-3.5 py-2 text-right text-teal-600 dark:text-teal-400 font-medium">
-                        {formatCurrencyPrecise(selectedLancamento.comissaoSuporte || 0)}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Gasto em Tráfego Pago</td>
-                      <td className="px-3.5 py-2 text-right text-gray-700 dark:text-gray-300 font-medium">
-                        {formatCurrencyPrecise(selectedLancamento.gastoTrafego)}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Custos Operacionais Extras</td>
-                      <td className="px-3.5 py-2 text-right text-gray-700 dark:text-gray-300 font-medium">
-                        {formatCurrencyPrecise(selectedLancamento.custosOperacionais)}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                      <td className="px-3.5 py-2 text-gray-500 font-medium">Aportes Financeiros / Capital</td>
-                      <td className="px-3.5 py-2 text-right text-purple-600 dark:text-purple-400 font-medium">
-                        {formatCurrencyPrecise(selectedLancamento.aportesFinanceiros || 0)}
-                      </td>
-                    </tr>
-                    {(() => {
-                      const net = (Number(selectedLancamento.receitaReais) || 0) +
-                        (Number(selectedLancamento.aportesFinanceiros) || 0) -
-                        (Number(selectedLancamento.gastoTrafego) || 0) -
-                        (Number(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0)) -
-                        (Number(selectedLancamento.comissaoSuporte) || 0) -
-                        (Number(selectedLancamento.custosOperacionais) || 0);
-                      return (
-                        <tr className="bg-gray-50 dark:bg-gray-800/80 font-bold border-t border-gray-200 dark:border-gray-700">
-                          <td className="px-3.5 py-2.5 text-gray-900 dark:text-white">Saldo Líquido da Operação</td>
-                          <td className={`px-3.5 py-2.5 text-right ${net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-                            {formatCurrencyPrecise(net)}
-                          </td>
-                        </tr>
-                      );
-                    })()}
-                  </tbody>
-                </table>
+              {/* Detalhamento Financeiro Completo da Linha */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Discriminação Financeira Completa do Lançamento</span>
+                </h4>
+                <div className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl">
+                  <table className="w-full text-xs text-left">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Receita Bruta Realizada</td>
+                        <td className="px-3.5 py-2 text-right font-bold text-gray-900 dark:text-white">
+                          {formatCurrencyPrecise(selectedLancamento.receitaReais)}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Comissão de Vendas</td>
+                        <td className="px-3.5 py-2 text-right text-indigo-600 dark:text-indigo-400 font-medium">
+                          {formatCurrencyPrecise(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0)}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Comissão de Suporte</td>
+                        <td className="px-3.5 py-2 text-right text-teal-600 dark:text-teal-400 font-medium">
+                          {formatCurrencyPrecise(selectedLancamento.comissaoSuporte || 0)}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Gasto em Tráfego Pago</td>
+                        <td className="px-3.5 py-2 text-right text-gray-700 dark:text-gray-300 font-medium">
+                          {formatCurrencyPrecise(selectedLancamento.gastoTrafego)}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Custos Operacionais Extras</td>
+                        <td className="px-3.5 py-2 text-right text-gray-700 dark:text-gray-300 font-medium">
+                          {formatCurrencyPrecise(selectedLancamento.custosOperacionais)}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                        <td className="px-3.5 py-2 text-gray-500 font-medium">Aportes Financeiros / Capital</td>
+                        <td className="px-3.5 py-2 text-right text-purple-600 dark:text-purple-400 font-medium">
+                          {formatCurrencyPrecise(selectedLancamento.aportesFinanceiros || 0)}
+                        </td>
+                      </tr>
+                      {(() => {
+                        const net = (Number(selectedLancamento.receitaReais) || 0) +
+                          (Number(selectedLancamento.aportesFinanceiros) || 0) -
+                          (Number(selectedLancamento.gastoTrafego) || 0) -
+                          (Number(selectedLancamento.comissaoVendas || selectedLancamento.comissoesPagas || 0)) -
+                          (Number(selectedLancamento.comissaoSuporte) || 0) -
+                          (Number(selectedLancamento.custosOperacionais) || 0);
+                        return (
+                          <tr className="bg-gray-50 dark:bg-gray-800/80 font-bold border-t border-gray-200 dark:border-gray-700">
+                            <td className="px-3.5 py-2.5 text-gray-900 dark:text-white">Saldo Líquido da Operação</td>
+                            <td className={`px-3.5 py-2.5 text-right ${net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                              {formatCurrencyPrecise(net)}
+                            </td>
+                          </tr>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
+            {/* Pinned Modal Actions */}
+            <div className="shrink-0 p-4 sm:p-6 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50/70 dark:bg-gray-900/90 z-10">
               <button
                 type="button"
                 onClick={() => {
@@ -973,51 +919,63 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
         </div>
       )}
 
-      {/* MODAL */}
+      {/* MODAL NOVO LANÇAMENTO */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+            {/* Modal Header */}
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Novo Lançamento Diário</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
-            <form onSubmit={handleSaveLancamento} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Data *</label>
-                  <input type="date" required value={formData.data} onChange={e => setFormData({ ...formData, data: e.target.value })} className={inputCls} />
+
+            <form onSubmit={handleSaveLancamento} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Data <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input type="date" required value={formData.data} onChange={e => setFormData({ ...formData, data: e.target.value })} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">Mês de Referência</label>
+                    <select value={formData.mesReferencia} onChange={e => setFormData({ ...formData, mesReferencia: e.target.value })} className={inputCls}>
+                      {projecaoMensal.map(p => <option key={p.month} value={p.month}>{p.month}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Tipo de Lançamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })} className={inputCls}>
+                      <option value="Custos">Custos Operacionais Extras</option>
+                      <option value="Gasto em Tráfego">Gasto em Tráfego</option>
+                      <option value="Comissão de Vendas">Comissão de Vendas</option>
+                      <option value="Comissão de Suporte">Comissão de Suporte</option>
+                      <option value="Receitas">Receita Avulsa/Realizada</option>
+                      <option value="Aportes Financeiros">Aportes Financeiros (Investimento)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Valor (R$) <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input type="number" min="0" step="0.01" required value={formData.valor} onChange={e => setFormData({ ...formData, valor: e.target.value })} className={inputCls} />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Mês de Referência</label>
-                  <select value={formData.mesReferencia} onChange={e => setFormData({ ...formData, mesReferencia: e.target.value })} className={inputCls}>
-                    {projecaoMensal.map(p => <option key={p.month} value={p.month}>{p.month}</option>)}
-                  </select>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Observações</label>
+                  <input value={formData.observacao} onChange={e => setFormData({ ...formData, observacao: e.target.value })} className={inputCls} placeholder="Detalhes opcionais sobre a operação" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Tipo de Lançamento *</label>
-                  <select value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })} className={inputCls}>
-                    <option value="Custos">Custos Operacionais Extras</option>
-                    <option value="Gasto em Tráfego">Gasto em Tráfego</option>
-                    <option value="Comissão de Vendas">Comissão de Vendas</option>
-                    <option value="Comissão de Suporte">Comissão de Suporte</option>
-                    <option value="Receitas">Receita Avulsa/Realizada</option>
-                    <option value="Aportes Financeiros">Aportes Financeiros (Investimento)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Valor (R$) *</label>
-                  <input type="number" min="0" step="0.01" required value={formData.valor} onChange={e => setFormData({ ...formData, valor: e.target.value })} className={inputCls} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-500 dark:text-gray-400 mb-1">Observações</label>
-                <input value={formData.observacao} onChange={e => setFormData({ ...formData, observacao: e.target.value })} className={inputCls} placeholder="Detalhes opcionais sobre a operação" />
-              </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
-                <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900">Salvar Lançamento</button>
+
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar Lançamento</button>
               </div>
             </form>
           </div>

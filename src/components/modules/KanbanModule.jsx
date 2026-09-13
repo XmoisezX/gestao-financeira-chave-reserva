@@ -417,56 +417,62 @@ export const KanbanModule = () => {
 
       {/* ─── ADD LEAD MODAL ─── */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/50 backdrop-blur-[2px] p-4" onClick={() => setIsAddModalOpen(false)}>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-5">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center" onClick={() => setIsAddModalOpen(false)}>
+          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Adicionar Lead</h3>
                 <p className="text-[11px] text-gray-400 mt-0.5">Preencha os dados do novo contato</p>
               </div>
               <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
-            <form onSubmit={handleSaveNewLead} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Nome do contato *</label>
-                <input required value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} className={inputCls} placeholder="Ex: Rodrigo Fonseca" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSaveNewLead} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Empresa</label>
-                  <input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} placeholder="Fonseca Imóveis" />
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                    Nome do contato <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input required value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} className={inputCls} placeholder="Ex: Rodrigo Fonseca" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Empresa</label>
+                    <input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} placeholder="Fonseca Imóveis" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Telefone</label>
+                    <input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(11) 99999-8888" />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Telefone</label>
-                  <input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(11) 99999-8888" />
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">E-mail</label>
+                  <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="contato@empresa.com" />
                 </div>
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">E-mail</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="contato@empresa.com" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Plano de interesse</label>
+                    <select value={formData.planoInteresse} onChange={e => { const p = planos.find(x => x.plano === e.target.value); setFormData({ ...formData, planoInteresse: e.target.value, mrrEstimado: p ? p.mensal : 350 }); }} className={inputCls}>
+                      {planos.filter(p => p.mensal > 0).map(p => <option key={p.plano} value={p.plano}>{p.plano} — R$ {p.mensal}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Canal de origem</label>
+                    <select value={formData.canal} onChange={e => setFormData({ ...formData, canal: e.target.value })} className={inputCls}>
+                      <option value="Tráfego Pago">📢 Tráfego Pago</option>
+                      <option value="Listas Frias">📋 Listas Frias</option>
+                      <option value="Microinfluenciadores">🎤 Influenciadores</option>
+                    </select>
+                  </div>
+                </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Plano de interesse</label>
-                  <select value={formData.planoInteresse} onChange={e => { const p = planos.find(x => x.plano === e.target.value); setFormData({ ...formData, planoInteresse: e.target.value, mrrEstimado: p ? p.mensal : 350 }); }} className={inputCls}>
-                    {planos.filter(p => p.mensal > 0).map(p => <option key={p.plano} value={p.plano}>{p.plano} — R$ {p.mensal}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Canal de origem</label>
-                  <select value={formData.canal} onChange={e => setFormData({ ...formData, canal: e.target.value })} className={inputCls}>
-                    <option value="Tráfego Pago">📢 Tráfego Pago</option>
-                    <option value="Listas Frias">📋 Listas Frias</option>
-                    <option value="Microinfluenciadores">🎤 Influenciadores</option>
-                  </select>
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Observações</label>
+                  <input value={formData.observacoes} onChange={e => setFormData({ ...formData, observacoes: e.target.value })} className={inputCls} placeholder="Notas sobre o lead (opcional)" />
                 </div>
               </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Observações</label>
-                <input value={formData.observacoes} onChange={e => setFormData({ ...formData, observacoes: e.target.value })} className={inputCls} placeholder="Notas sobre o lead (opcional)" />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar Lead</button>
               </div>
             </form>
@@ -476,9 +482,9 @@ export const KanbanModule = () => {
 
       {/* ─── CONVERT MODAL ─── */}
       {isConvertModalOpen && selectedLeadForConvert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/50 backdrop-blur-[2px] p-4" onClick={() => setIsConvertModalOpen(false)}>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center" onClick={() => setIsConvertModalOpen(false)}>
+          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Converter em Cliente</h3>
                 <p className="text-[11px] text-gray-400 mt-0.5">Confirme os dados do novo assinante</p>
@@ -486,42 +492,52 @@ export const KanbanModule = () => {
               <button onClick={() => setIsConvertModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 mb-4">
-              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
-                {selectedLeadForConvert.nome.charAt(0)}
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-900 dark:text-white">{selectedLeadForConvert.nome}</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">{selectedLeadForConvert.empresa} · {selectedLeadForConvert.canal}</p>
-              </div>
-            </div>
+            <form onSubmit={handleConfirmConvert} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-800">
+                  <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
+                    {selectedLeadForConvert.nome.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-white">{selectedLeadForConvert.nome}</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400">{selectedLeadForConvert.empresa} · {selectedLeadForConvert.canal}</p>
+                  </div>
+                </div>
 
-            <form onSubmit={handleConfirmConvert} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Plano escolhido</label>
-                <select value={convertFormData.plano} onChange={e => { const p = planos.find(x => x.plano === e.target.value); setConvertFormData({ ...convertFormData, plano: e.target.value, mrr: p ? p.mensal : 350 }); }} className={inputCls}>
-                  {planos.filter(p => p.mensal > 0).map(p => <option key={p.plano} value={p.plano}>{p.plano} — R$ {p.mensal}/mês</option>)}
-                </select>
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                    Plano escolhido <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select value={convertFormData.plano} onChange={e => { const p = planos.find(x => x.plano === e.target.value); setConvertFormData({ ...convertFormData, plano: e.target.value, mrr: p ? p.mensal : 350 }); }} className={inputCls}>
+                    {planos.filter(p => p.mensal > 0).map(p => <option key={p.plano} value={p.plano}>{p.plano} — R$ {p.mensal}/mês</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                    Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={convertFormData.dataEntrada || new Date().toISOString().split('T')[0]}
+                    onChange={e => setConvertFormData({ ...convertFormData, dataEntrada: e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                    Método de pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select value={convertFormData.metodoPagamento} onChange={e => setConvertFormData({ ...convertFormData, metodoPagamento: e.target.value })} className={inputCls}>
+                    <option value="Pix">Pix</option><option value="Boleto Bancário">Boleto Bancário</option>
+                    <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option><option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Data de Entrada</label>
-                <input
-                  type="date"
-                  required
-                  value={convertFormData.dataEntrada || new Date().toISOString().split('T')[0]}
-                  onChange={e => setConvertFormData({ ...convertFormData, dataEntrada: e.target.value })}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Método de pagamento</label>
-                <select value={convertFormData.metodoPagamento} onChange={e => setConvertFormData({ ...convertFormData, metodoPagamento: e.target.value })} className={inputCls}>
-                  <option value="Pix">Pix</option><option value="Boleto Bancário">Boleto Bancário</option>
-                  <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option><option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-sm">Confirmar Conversão</button>
               </div>
             </form>

@@ -304,199 +304,202 @@ export const FuncionariosModule = () => {
 
       {/* Modal de Criação / Edição */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl my-8">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl my-auto overflow-hidden">
+            {/* Modal Header */}
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <Users className="w-4 h-4 text-amber-500" />
                 {(funcionarios || []).find(f => f.id === formData.id) ? 'Editar Usuário' : 'Novo Usuário do Sistema'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg leading-none"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              {/* Nome Completo */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nome Completo *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nome}
-                  onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                  className={inputCls}
-                  placeholder="Ex: Carlos Eduardo Silva"
-                />
-              </div>
-
-              {/* CPF e Chave Pix */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                {/* Nome Completo */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    CPF (Cadastro de Pessoa Física)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.cpf}
-                    onChange={e => setFormData({ ...formData, cpf: e.target.value })}
-                    className={inputCls}
-                    placeholder="000.000.000-00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Chave Pix para Pagamentos *
+                    Nome Completo <span className="text-red-500 font-bold ml-0.5">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    value={formData.pix}
-                    onChange={e => setFormData({ ...formData, pix: e.target.value })}
+                    value={formData.nome}
+                    onChange={e => setFormData({ ...formData, nome: e.target.value })}
                     className={inputCls}
-                    placeholder="Chave CPF, E-mail, Celular ou Aleatória"
+                    placeholder="Ex: Carlos Eduardo Silva"
                   />
                 </div>
-              </div>
 
-              {/* Credenciais: E-mail e Senha */}
-              <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-3">
-                <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5" /> Credenciais de Login no Sistema
-                </p>
+                {/* CPF e Chave Pix */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      E-mail de Acesso *
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      CPF (Cadastro de Pessoa Física)
                     </label>
                     <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      type="text"
+                      value={formData.cpf}
+                      onChange={e => setFormData({ ...formData, cpf: e.target.value })}
                       className={inputCls}
-                      placeholder="usuario@chavereserva.com"
+                      placeholder="000.000.000-00"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Senha de Acesso *
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Chave Pix para Pagamentos <span className="text-red-500 font-bold ml-0.5">*</span>
                     </label>
-                    <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.pix}
+                      onChange={e => setFormData({ ...formData, pix: e.target.value })}
+                      className={inputCls}
+                      placeholder="Chave CPF, E-mail, Celular ou Aleatória"
+                    />
+                  </div>
+                </div>
+
+                {/* Credenciais: E-mail e Senha */}
+                <div className="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-3">
+                  <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5" /> Credenciais de Login no Sistema
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        E-mail de Acesso <span className="text-red-500 font-bold ml-0.5">*</span>
+                      </label>
                       <input
-                        type={showPassword ? "text" : "password"}
+                        type="email"
                         required
-                        value={formData.senha}
-                        onChange={e => setFormData({ ...formData, senha: e.target.value })}
-                        className={`${inputCls} pr-8`}
-                        placeholder="••••••••"
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        className={inputCls}
+                        placeholder="usuario@chavereserva.com"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                      >
-                        {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Senha de Acesso <span className="text-red-500 font-bold ml-0.5">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          value={formData.senha}
+                          onChange={e => setFormData({ ...formData, senha: e.target.value })}
+                          className={`${inputCls} pr-8`}
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                          {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Cargo e Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Cargo / Função *
-                  </label>
-                  <select
-                    value={formData.cargo}
-                    onChange={e => setFormData({ ...formData, cargo: e.target.value })}
-                    className={inputCls}
-                  >
-                    {cargosDisponiveis.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Status da Conta *
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={e => setFormData({ ...formData, status: e.target.value })}
-                    className={inputCls}
-                  >
-                    <option value="Ativo">Ativo (Acesso Liberado)</option>
-                    <option value="Inativo">Inativo (Acesso Bloqueado)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Remuneração & Vigência */}
-              <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-xl space-y-3">
-                <p className="text-[11px] font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-amber-500" /> Remuneração Mensal & Período de Vigência
-                </p>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Total Pago por Mês (Salário / Pró-labore em R$) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    step="0.01"
-                    value={formData.custoMensal}
-                    onChange={e => setFormData({ ...formData, custoMensal: e.target.value })}
-                    className={inputCls}
-                    placeholder="0.00"
-                  />
-                </div>
-
+                {/* Cargo e Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Data de Início *
+                      Cargo / Função <span className="text-red-500 font-bold ml-0.5">*</span>
                     </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.dataInicio}
-                      onChange={e => setFormData({ ...formData, dataInicio: e.target.value })}
+                    <select
+                      value={formData.cargo}
+                      onChange={e => setFormData({ ...formData, cargo: e.target.value })}
                       className={inputCls}
-                    />
+                    >
+                      {cargosDisponiveis.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Data de Fim (Opcional)
+                      Status da Conta <span className="text-red-500 font-bold ml-0.5">*</span>
                     </label>
-                    <input
-                      type="date"
-                      value={formData.dataFim || ''}
-                      onChange={e => setFormData({ ...formData, dataFim: e.target.value })}
+                    <select
+                      value={formData.status}
+                      onChange={e => setFormData({ ...formData, status: e.target.value })}
                       className={inputCls}
-                    />
+                    >
+                      <option value="Ativo">Ativo (Acesso Liberado)</option>
+                      <option value="Inativo">Inativo (Acesso Bloqueado)</option>
+                    </select>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-400">
-                  ℹ️ Se a <strong>Data de Fim</strong> for deixada em branco, a remuneração continuará por tempo indeterminado. Na aba <strong>Operação Diária</strong>, o custo será contabilizado apenas nos meses dentro deste período.
-                </p>
+
+                {/* Remuneração & Vigência */}
+                <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-xl space-y-3">
+                  <p className="text-[11px] font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-amber-500" /> Remuneração Mensal & Período de Vigência
+                  </p>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Total Pago por Mês (Salário / Pró-labore em R$) <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      value={formData.custoMensal}
+                      onChange={e => setFormData({ ...formData, custoMensal: e.target.value })}
+                      className={inputCls}
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Data de Início <span className="text-red-500 font-bold ml-0.5">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={formData.dataInicio}
+                        onChange={e => setFormData({ ...formData, dataInicio: e.target.value })}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Data de Fim (Opcional)
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.dataFim || ''}
+                        onChange={e => setFormData({ ...formData, dataFim: e.target.value })}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    ℹ️ Se a <strong>Data de Fim</strong> for deixada em branco, a remuneração continuará por tempo indeterminado. Na aba <strong>Operação Diária</strong>, o custo será contabilizado apenas nos meses dentro deste período.
+                  </p>
+                </div>
               </div>
 
-              {/* Modal Buttons */}
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-gray-100 dark:border-gray-800">
+              {/* Pinned Modal Buttons */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-2.5 bg-gray-50/70 dark:bg-gray-900/90 z-10">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>
