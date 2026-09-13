@@ -368,14 +368,25 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     if (user?.email && funcionarios && funcionarios.length > 0) {
       const match = funcionarios.find(f => f.email && f.email.toLowerCase().trim() === user.email.toLowerCase().trim());
-      if (match && match.cargo && (match.cargo !== user.role || (match.nome && match.nome !== user.name))) {
-        const updated = {
-          ...user,
-          role: match.cargo,
-          name: match.nome || user.name
-        };
-        setUser(updated);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+      if (match) {
+        let changed = false;
+        const updated = { ...user };
+        if (match.cargo && match.cargo !== user.role) {
+          updated.role = match.cargo;
+          changed = true;
+        }
+        if (match.nome && match.nome !== user.name) {
+          updated.name = match.nome;
+          changed = true;
+        }
+        if (match.photoUrl !== undefined && match.photoUrl !== user.photoUrl) {
+          updated.photoUrl = match.photoUrl;
+          changed = true;
+        }
+        if (changed) {
+          setUser(updated);
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+        }
       }
     }
   }, [funcionarios, user?.email]);
@@ -405,6 +416,7 @@ export const AppProvider = ({ children }) => {
         const role = localMatch?.cargo || meta.cargo || (cleanEmail === 'moiseztorres100@gmail.com' ? 'Administrador' : 'Vendedor');
         const name = localMatch?.nome || meta.nome || meta.full_name || cleanEmail.split('@')[0];
         const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
+        const photoUrl = meta.photoUrl || meta.avatar_url || localMatch?.photoUrl || null;
 
         const loggedUser = {
           id: data.user.id,
@@ -413,7 +425,8 @@ export const AppProvider = ({ children }) => {
           role,
           cpf: meta.cpf || localMatch?.cpf || '',
           pix: meta.pix || localMatch?.pix || '',
-          avatar: initials
+          photoUrl,
+          avatar: photoUrl ? null : initials
         };
 
         setUser(loggedUser);
@@ -426,6 +439,8 @@ export const AppProvider = ({ children }) => {
 
     // 2. Master Super Admin fallback for primary master account
     if (cleanEmail === 'moiseztorres100@gmail.com' && cleanPass === 'Geral123@') {
+      const localMatch = (funcionarios || []).find(f => f.email && f.email.toLowerCase().trim() === cleanEmail);
+      const photoUrl = localMatch?.photoUrl || null;
       const adminUser = {
         id: 'func-1',
         email: 'moiseztorres100@gmail.com',
@@ -433,7 +448,8 @@ export const AppProvider = ({ children }) => {
         role: 'Administrador',
         cpf: '000.000.000-00',
         pix: 'moiseztorres100@gmail.com',
-        avatar: 'MT'
+        photoUrl,
+        avatar: photoUrl ? null : 'MT'
       };
       setUser(adminUser);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(adminUser));
@@ -462,6 +478,8 @@ export const AppProvider = ({ children }) => {
         .substring(0, 2)
         .toUpperCase();
 
+      const photoUrl = foundUser.photoUrl || null;
+
       const loggedUser = {
         id: foundUser.id,
         email: foundUser.email,
@@ -469,7 +487,8 @@ export const AppProvider = ({ children }) => {
         role: foundUser.cargo,
         cpf: foundUser.cpf,
         pix: foundUser.pix,
-        avatar: initials || 'US'
+        photoUrl,
+        avatar: photoUrl ? null : (initials || 'US')
       };
       setUser(loggedUser);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(loggedUser));
@@ -487,7 +506,8 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem(STORAGE_KEYS.USER);
   };
 
-  const updateUser = (updatedFields) => {
+  const updateUser = async (updatedFields) => {
+    let updatedUserObj = null;
     setUser(prev => {
       if (!prev) return null;
       const newUser = {
@@ -495,9 +515,73 @@ export const AppProvider = ({ children }) => {
         ...updatedFields,
         email: prev.email // Ensure email is locked and immutable
       };
+      updatedUserObj = newUser;
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
       return newUser;
     });
+
+    if (!updatedUserObj) return;
+
+    // Update in funcionarios list so all modules and all users in Supabase receive the photo & name
+    setFuncionarios(prev => {
+      const userEmail = (updatedUserObj.email || '').toLowerCase().trim();
+      const currentList = prev || [];
+      const index = currentList.findIndex(f =>
+        (f.email && f.email.toLowerCase().trim() === userEmail) ||
+        (f.id && updatedUserObj.id && f.id === updatedUserObj.id)
+      );
+
+      let updatedList;
+      if (index !== -1) {
+        updatedList = [...currentList];
+        updatedList[index] = {
+          ...updatedList[index],
+          nome: updatedUserObj.name || updatedList[index].nome,
+          photoUrl: updatedUserObj.photoUrl !== undefined ? updatedUserObj.photoUrl : updatedList[index].photoUrl
+        };
+      } else {
+        updatedList = [
+          ...currentList,
+          {
+            id: updatedUserObj.id || `func-${Date.now()}`,
+            nome: updatedUserObj.name,
+            email: updatedUserObj.email,
+            cargo: updatedUserObj.role || 'Vendedor',
+            photoUrl: updatedUserObj.photoUrl || null,
+            status: 'Ativo'
+          }
+        ];
+      }
+
+      localStorage.setItem(STORAGE_KEYS.FUNCIONARIOS, JSON.stringify(updatedList));
+
+      // Direct persistent sync to Supabase app_state
+      syncData(STORAGE_KEYS.FUNCIONARIOS, updatedList);
+
+      return updatedList;
+    });
+
+    // Also update Supabase Auth user metadata
+    try {
+      if (supabase?.auth) {
+        await supabase.auth.updateUser({
+          data: {
+            nome: updatedUserObj.name,
+            photoUrl: updatedUserObj.photoUrl
+          }
+        });
+      }
+      if (updatedUserObj.id && supabaseAdmin?.auth?.admin) {
+        await supabaseAdmin.auth.admin.updateUserById(updatedUserObj.id, {
+          user_metadata: {
+            nome: updatedUserObj.name,
+            photoUrl: updatedUserObj.photoUrl
+          }
+        });
+      }
+    } catch (authErr) {
+      console.warn('Metadados de Auth atualizados localmente:', authErr);
+    }
   };
 
   // Helper to sync data to dedicated relational tables in Supabase
