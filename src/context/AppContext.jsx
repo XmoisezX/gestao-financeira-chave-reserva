@@ -221,12 +221,21 @@ export const AppProvider = ({ children }) => {
     }
   }, [customBrand]);
 
-  const updateCustomBrand = (brandData) => {
+  const updateCustomBrand = async (brandData) => {
+    let updatedBrand = null;
     setCustomBrand(prev => {
       const updated = { ...prev, ...brandData };
+      updatedBrand = updated;
       localStorage.setItem(STORAGE_KEYS.BRAND, JSON.stringify(updated));
       return updated;
     });
+    if (updatedBrand) {
+      try {
+        await syncData(STORAGE_KEYS.BRAND, updatedBrand);
+      } catch (e) {
+        console.warn('Erro ao sincronizar marca com Supabase:', e);
+      }
+    }
   };
 
   // Support Roulette Configuration
