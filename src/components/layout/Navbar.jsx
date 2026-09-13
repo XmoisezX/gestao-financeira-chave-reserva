@@ -17,6 +17,9 @@ import {
 export const Sidebar = () => {
   const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin, isSupport, customBrand } = useApp();
   const [collapsed, setCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const isExpanded = !collapsed || isHovered;
 
   // Calculate pending commissions
   const pendingComissoesCount = (clientes || []).filter(c => {
@@ -64,160 +67,174 @@ export const Sidebar = () => {
   });
 
   return (
-    <aside
+    <div
       className={`
-        sticky top-0 h-screen flex flex-col justify-between
-        border-r transition-all duration-200 ease-in-out z-30
+        relative shrink-0 transition-all duration-200 ease-in-out h-screen sticky top-0
         ${collapsed ? 'w-[68px]' : 'w-[248px]'}
+        ${collapsed && isHovered ? 'z-40' : 'z-30'}
       `}
-      style={{
-        background: 'var(--sidebar-bg)',
-        borderColor: 'var(--sidebar-border)',
-      }}
     >
-      {/* Top Section: Logo + Nav */}
-      <div className="flex flex-col h-full overflow-hidden">
+      <aside
+        onMouseEnter={() => { if (collapsed) setIsHovered(true); }}
+        onMouseLeave={() => { setIsHovered(false); }}
+        className={`
+          h-full flex flex-col justify-between
+          border-r transition-all duration-200 ease-in-out
+          ${isExpanded ? 'w-[248px]' : 'w-[68px]'}
+          ${collapsed && isHovered ? 'absolute top-0 left-0 shadow-2xl' : 'relative'}
+        `}
+        style={{
+          background: 'var(--sidebar-bg)',
+          borderColor: 'var(--sidebar-border)',
+        }}
+      >
+        {/* Top Section: Logo + Nav */}
+        <div className="flex flex-col h-full overflow-hidden">
 
-        {/* Brand */}
-        <div
-          className={`flex items-center ${collapsed ? 'justify-center px-3' : 'px-5'} h-[60px] shrink-0 overflow-hidden`}
-          style={{ borderBottom: '1px solid var(--sidebar-border)' }}
-        >
-          {customBrand?.logoUrl ? (
-            <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'justify-start max-w-full'}`}>
-              <img
-                src={customBrand.logoUrl}
-                alt="Logo"
-                className={`object-contain ${collapsed ? 'max-h-8 max-w-[36px]' : 'max-h-10 max-w-[190px] w-auto'} transition-all brightness-0 invert`}
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
-                <Key className="w-4 h-4 text-white" />
+          {/* Brand */}
+          <div
+            className={`flex items-center ${!isExpanded ? 'justify-center px-3' : 'px-5'} h-[60px] shrink-0 overflow-hidden`}
+            style={{ borderBottom: '1px solid var(--sidebar-border)' }}
+          >
+            {customBrand?.logoUrl ? (
+              <div className={`flex items-center ${!isExpanded ? 'justify-center w-full' : 'justify-start max-w-full'}`}>
+                <img
+                  src={customBrand.logoUrl}
+                  alt="Logo"
+                  className={`object-contain ${!isExpanded ? 'max-h-8 max-w-[36px]' : 'max-h-10 max-w-[190px] w-auto'} transition-all brightness-0 invert`}
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
               </div>
-              {!collapsed && (
-                <span className="text-[14px] font-bold text-white tracking-tight truncate">
-                  Chave Reserva
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
+                  <Key className="w-4 h-4 text-white" />
+                </div>
+                {isExpanded && (
+                  <span className="text-[14px] font-bold text-white tracking-tight truncate">
+                    Chave Reserva
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto no-scrollbar py-3 px-2.5 space-y-0.5">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              const hasBadge = item.badge && item.badge > 0;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  title={!isExpanded ? (hasBadge ? `${item.label} (${item.badge} pendentes)` : item.label) : undefined}
+                  className={`
+                    relative w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
+                    ${!isExpanded ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
+                  `}
+                  style={{
+                    background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
+                    color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = 'var(--sidebar-text-hover)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = 'var(--sidebar-text)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {/* Active indicator bar */}
+                  {isActive && <span className="cr-sidebar-indicator" />}
+
+                  <div className="relative shrink-0">
+                    <Icon className="w-[18px] h-[18px]" />
+                    {hasBadge && !isExpanded && (
+                      <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 animate-pulse" style={{ ringColor: 'var(--sidebar-bg)' }} />
+                    )}
+                  </div>
+
+                  {isExpanded && (
+                    <>
+                      <span className="truncate">{item.label}</span>
+                      {hasBadge && (
+                        <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* KPIs when expanded */}
+          {isExpanded && (
+            <div
+              className="mx-3 mb-3 p-3.5 rounded-lg space-y-2.5 shrink-0"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid var(--sidebar-border)',
+              }}
+            >
+              <div className="flex justify-between items-center text-xs">
+                <span style={{ color: 'var(--sidebar-text)' }}>
+                  {isAdmin ? 'Clientes Ativos' : 'Meus Clientes'}
                 </span>
-              )}
+                <span className="font-semibold text-white">{sidebarClientesCount}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span style={{ color: 'var(--sidebar-text)' }}>
+                  {isAdmin ? 'MRR Total' : 'Meu MRR'}
+                </span>
+                <span className="font-semibold text-white">
+                  R$ {sidebarMrrTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                </span>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto no-scrollbar py-3 px-2.5 space-y-0.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            const hasBadge = item.badge && item.badge > 0;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                title={collapsed ? (hasBadge ? `${item.label} (${item.badge} pendentes)` : item.label) : undefined}
-                className={`
-                  relative w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
-                  ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
-                `}
-                style={{
-                  background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
-                  color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = 'var(--sidebar-text-hover)';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = 'var(--sidebar-text)';
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                {/* Active indicator bar */}
-                {isActive && <span className="cr-sidebar-indicator" />}
-
-                <div className="relative shrink-0">
-                  <Icon className="w-[18px] h-[18px]" />
-                  {hasBadge && collapsed && (
-                    <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 animate-pulse" style={{ ringColor: 'var(--sidebar-bg)' }} />
-                  )}
-                </div>
-
-                {!collapsed && (
-                  <>
-                    <span className="truncate">{item.label}</span>
-                    {hasBadge && (
-                      <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* KPIs when expanded */}
-        {!collapsed && (
-          <div
-            className="mx-3 mb-3 p-3.5 rounded-lg space-y-2.5 shrink-0"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid var(--sidebar-border)',
+        {/* Collapse Toggle */}
+        <div className="p-2.5 shrink-0" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+          <button
+            onClick={() => {
+              setCollapsed(!collapsed);
+              setIsHovered(false);
+            }}
+            title={collapsed ? 'Fixar menu aberto' : 'Recolher menu'}
+            className={`
+              w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
+              ${!isExpanded ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
+            `}
+            style={{ color: 'var(--sidebar-text)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--sidebar-text-hover)';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--sidebar-text)';
+              e.currentTarget.style.background = 'transparent';
             }}
           >
-            <div className="flex justify-between items-center text-xs">
-              <span style={{ color: 'var(--sidebar-text)' }}>
-                {isAdmin ? 'Clientes Ativos' : 'Meus Clientes'}
-              </span>
-              <span className="font-semibold text-white">{sidebarClientesCount}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span style={{ color: 'var(--sidebar-text)' }}>
-                {isAdmin ? 'MRR Total' : 'Meu MRR'}
-              </span>
-              <span className="font-semibold text-white">
-                R$ {sidebarMrrTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Collapse Toggle */}
-      <div className="p-2.5 shrink-0" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          className={`
-            w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
-            ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
-          `}
-          style={{ color: 'var(--sidebar-text)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--sidebar-text-hover)';
-            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--sidebar-text)';
-            e.currentTarget.style.background = 'transparent';
-          }}
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="w-[18px] h-[18px] shrink-0" />
-          ) : (
-            <PanelLeftClose className="w-[18px] h-[18px] shrink-0" />
-          )}
-          {!collapsed && <span>Recolher</span>}
-        </button>
-      </div>
-    </aside>
+            {collapsed ? (
+              <PanelLeftOpen className="w-[18px] h-[18px] shrink-0" />
+            ) : (
+              <PanelLeftClose className="w-[18px] h-[18px] shrink-0" />
+            )}
+            {isExpanded && <span>{collapsed ? 'Fixar menu' : 'Recolher'}</span>}
+          </button>
+        </div>
+      </aside>
+    </div>
   );
 };
