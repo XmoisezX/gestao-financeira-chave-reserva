@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Users, Search, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { Users, Search, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const ClientesModule = () => {
   const {
@@ -14,10 +14,12 @@ export const ClientesModule = () => {
   
   // Add Modal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addErrors, setAddErrors] = useState([]);
   const [formData, setFormData] = useState({ nome: '', empresa: '', email: '', telefone: '', plano: 'Imobiliária Pro', mrr: 350, metodoPagamento: 'Pix', canalOrigem: 'Tráfego Pago', dataEntrada: new Date().toISOString().split('T')[0] });
 
   // Validation Modal
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
+  const [validateErrors, setValidateErrors] = useState([]);
   const [selectedPendingId, setSelectedPendingId] = useState(null);
   const [valData, setValData] = useState({
     cpfCnpj: '',
@@ -60,12 +62,38 @@ export const ClientesModule = () => {
   const userArpuMedio = userClientesAtivos.length > 0 ? userMrrTotal / userClientesAtivos.length : 0;
   const userChurnRate = accessibleClientes.length > 0 ? ((userClientesChurned.length / accessibleClientes.length) * 100).toFixed(1) : '0.0';
 
+  const clearValError = (field) => {
+    setValidateErrors(prev => prev.filter(e => e.field !== field));
+  };
+
+  const hasValError = (field) => validateErrors.some(e => e.field === field);
+
+  const clearAddError = (field) => {
+    setAddErrors(prev => prev.filter(e => e.field !== field));
+  };
+
+  const hasAddError = (field) => addErrors.some(e => e.field === field);
+
+  const handleOpenAddModal = () => {
+    setAddErrors([]);
+    setFormData({ nome: '', empresa: '', email: '', telefone: '', plano: planos[0]?.plano || 'Imobiliária Pro', mrr: planos[0]?.mensal || 350, metodoPagamento: 'Pix', canalOrigem: 'Tráfego Pago', dataEntrada: new Date().toISOString().split('T')[0] });
+    setIsAddModalOpen(true);
+  };
+
   const handleSaveCliente = (e) => { 
     e.preventDefault(); 
-    if (!formData.nome) {
-      alert("Por favor, preencha o nome do cliente.");
+    const errors = [];
+    if (!formData.nome?.trim()) errors.push({ field: 'nome', label: 'Nome' });
+    if (!formData.dataEntrada?.trim()) errors.push({ field: 'dataEntrada', label: 'Data de Entrada' });
+    if (!formData.plano?.trim()) errors.push({ field: 'plano', label: 'Plano' });
+    if (!formData.metodoPagamento?.trim()) errors.push({ field: 'metodoPagamento', label: 'Pagamento' });
+
+    if (errors.length > 0) {
+      setAddErrors(errors);
       return;
     }
+    setAddErrors([]);
+
     addCliente(formData); 
     addAuditLog('Cadastro de Cliente', `Cliente "${formData.nome}" (${formData.empresa || 'Sem empresa'}) cadastrado com plano ${formData.plano}, MRR R$${formData.mrr}`);
     setIsAddModalOpen(false); 
@@ -73,6 +101,7 @@ export const ClientesModule = () => {
 
   const handleOpenValidate = (cliente) => {
     setSelectedPendingId(cliente.id);
+    setValidateErrors([]);
     setValData({
       cpfCnpj: cliente.cpfCnpj || '',
       endereco: cliente.endereco || '',
@@ -93,11 +122,13 @@ export const ClientesModule = () => {
 
   const handleVendedorChange = (e) => {
     const vName = e.target.value;
+    clearValError('vendedorResponsavel');
     const vend = funcionarios.find(f => f.nome === vName);
     
     let newSuporte = valData.suporteResponsavel;
     if (vend && vend.status === 'Ativo' && (vend.cargo === 'Suporte' || vend.cargo === 'Administrador' || vend.cargo === 'Vendedor e Suporte')) {
       newSuporte = vName; // Auto-selects same person due to preference rule
+      clearValError('suporteResponsavel');
     }
     
     setValData({ ...valData, vendedorResponsavel: vName, suporteResponsavel: newSuporte });
@@ -141,6 +172,7 @@ export const ClientesModule = () => {
 
   const handlePlanoChange = (e) => {
     const val = e.target.value;
+    clearValError('plano');
     setValData(prev => ({
       ...prev,
       plano: val,
@@ -150,6 +182,7 @@ export const ClientesModule = () => {
 
   const handleAluguelChange = (e) => {
     const val = e.target.value;
+    clearValError('moduloAluguel');
     setValData(prev => ({
       ...prev,
       moduloAluguel: val,
@@ -159,6 +192,7 @@ export const ClientesModule = () => {
 
   const handleModalidadeChange = (e) => {
     const val = e.target.value;
+    clearValError('modalidade');
     setValData(prev => ({
       ...prev,
       modalidade: val,
@@ -212,10 +246,22 @@ export const ClientesModule = () => {
 
   const handleConfirmValidate = (e) => {
     e.preventDefault();
-    if (!valData.cpfCnpj || !valData.endereco || !valData.vendedorResponsavel || !valData.suporteResponsavel) {
-      alert("Por favor, preencha todos os campos obrigatórios (*):\n- CPF/CNPJ\n- Endereço Completo\n- Vendedor\n- Suporte");
+    const errors = [];
+    if (!valData.cpfCnpj?.trim()) errors.push({ field: 'cpfCnpj', label: 'CPF / CNPJ' });
+    if (!valData.plano?.trim()) errors.push({ field: 'plano', label: 'Plano Escolhido' });
+    if (!valData.moduloAluguel?.trim()) errors.push({ field: 'moduloAluguel', label: 'Módulo Aluguel' });
+    if (!valData.metodoPagamento?.trim()) errors.push({ field: 'metodoPagamento', label: 'Método de Pagamento' });
+    if (!valData.modalidade?.trim()) errors.push({ field: 'modalidade', label: 'Modalidade de Venda' });
+    if (!valData.dataEntrada?.trim()) errors.push({ field: 'dataEntrada', label: 'Data de Entrada' });
+    if (!valData.endereco?.trim()) errors.push({ field: 'endereco', label: 'Endereço Completo' });
+    if (!valData.vendedorResponsavel?.trim()) errors.push({ field: 'vendedorResponsavel', label: 'Vendedor' });
+    if (!valData.suporteResponsavel?.trim()) errors.push({ field: 'suporteResponsavel', label: 'Suporte' });
+
+    if (errors.length > 0) {
+      setValidateErrors(errors);
       return;
     }
+    setValidateErrors([]);
     
     const client = clientes.find(c => c.id === selectedPendingId);
     if (client && client.status === 'Pendente') {
@@ -231,6 +277,7 @@ export const ClientesModule = () => {
   };
 
   const inputCls = "w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-gray-400";
+  const getInputCls = (isError) => `w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 text-gray-900 dark:text-white text-xs focus:outline-none transition-colors ${isError ? 'border border-red-500 ring-1 ring-red-500 bg-red-50/20 dark:bg-red-950/20 placeholder-red-300' : 'border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-gray-400'}`;
 
   return (
     <div className="space-y-6">
@@ -253,7 +300,7 @@ export const ClientesModule = () => {
             <option value="Pendente">Pendentes</option>
             <option value="Churned">Cancelados</option>
           </select>
-          <button onClick={() => { setFormData({ nome: '', empresa: '', email: '', telefone: '', plano: 'Imobiliária Pro', mrr: 350, metodoPagamento: 'Pix', canalOrigem: 'Tráfego Pago', dataEntrada: new Date().toISOString().split('T')[0] }); setIsAddModalOpen(true); }}
+          <button onClick={handleOpenAddModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
             <Plus className="w-3.5 h-3.5" /><span>Novo Cliente</span>
           </button>
@@ -358,14 +405,39 @@ export const ClientesModule = () => {
       {/* VALIDATION MODAL */}
       {isValidateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Editar Dados do Cliente' : 'Aprovar & Validar Venda'}
               </h3>
               <button onClick={() => setIsValidateModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
             </div>
-            <div className="text-xs text-gray-500 mb-2 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-lg border border-yellow-200 dark:border-yellow-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+
+            {/* Error Banner */}
+            {validateErrors.length > 0 && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <p className="font-semibold text-red-800 dark:text-red-200">
+                      Por favor, preencha todos os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {validateErrors.map(err => (
+                        <span
+                          key={err.field}
+                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
+                        >
+                          • {err.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="text-xs text-gray-500 mb-2 bg-yellow-50 dark:bg-yellow-900/20 p-2.5 rounded-lg border border-yellow-200 dark:border-yellow-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
               <span>{clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Edite os dados do cliente.' : 'Complete os dados para aprovar a venda.'}</span>
               <div className="font-bold text-gray-900 dark:text-white text-right">
                 {valData.modalidade === 'anualVista' ? (
@@ -375,11 +447,20 @@ export const ClientesModule = () => {
                 )}
               </div>
             </div>
+
             <form onSubmit={handleConfirmValidate} noValidate className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">CPF / CNPJ *</label>
-                  <input required value={valData.cpfCnpj} onChange={e => setValData({ ...valData, cpfCnpj: e.target.value })} className={inputCls} placeholder="000.000.000-00" />
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    CPF / CNPJ <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    required
+                    value={valData.cpfCnpj}
+                    onChange={e => { clearValError('cpfCnpj'); setValData({ ...valData, cpfCnpj: e.target.value }); }}
+                    className={getInputCls(hasValError('cpfCnpj'))}
+                    placeholder="000.000.000-00"
+                  />
                 </div>
                 <div>
                   <label className="block text-gray-500 dark:text-gray-400 mb-1">Desconto (%) e Duração</label>
@@ -396,14 +477,19 @@ export const ClientesModule = () => {
               
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Plano Escolhido *</label>
-                  <select required value={valData.plano} onChange={handlePlanoChange} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Plano Escolhido <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select required value={valData.plano} onChange={handlePlanoChange} className={getInputCls(hasValError('plano'))}>
+                    <option value="">Selecione um plano...</option>
                     {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Módulo Aluguel *</label>
-                  <select required value={valData.moduloAluguel} onChange={handleAluguelChange} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Módulo Aluguel <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select required value={valData.moduloAluguel} onChange={handleAluguelChange} className={getInputCls(hasValError('moduloAluguel'))}>
                     <option value="Não">Não</option>
                     <option value="Sim">Sim</option>
                   </select>
@@ -437,8 +523,16 @@ export const ClientesModule = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Método de Pagamento *</label>
-                  <select required value={valData.metodoPagamento} onChange={e => setValData({ ...valData, metodoPagamento: e.target.value })} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Método de Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select
+                    required
+                    value={valData.metodoPagamento}
+                    onChange={e => { clearValError('metodoPagamento'); setValData({ ...valData, metodoPagamento: e.target.value }); }}
+                    className={getInputCls(hasValError('metodoPagamento'))}
+                  >
+                    <option value="">Selecione...</option>
                     <option value="Pix">Pix</option>
                     <option value="Boleto Bancário">Boleto</option>
                     <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
@@ -446,8 +540,10 @@ export const ClientesModule = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Modalidade de Venda *</label>
-                  <select required value={valData.modalidade} onChange={handleModalidadeChange} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Modalidade de Venda <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select required value={valData.modalidade} onChange={handleModalidadeChange} className={getInputCls(hasValError('modalidade'))}>
                     <option value="mensal">Mensal (Recorrente)</option>
                     <option value="anualVista">Anual (À Vista — com desconto)</option>
                     <option value="anualParcelado">Anual (Parcelado Mensal — com desconto)</option>
@@ -457,19 +553,37 @@ export const ClientesModule = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Data de Entrada *</label>
-                  <input type="date" required value={valData.dataEntrada} onChange={e => setValData({ ...valData, dataEntrada: e.target.value })} className={inputCls} />
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={valData.dataEntrada}
+                    onChange={e => { clearValError('dataEntrada'); setValData({ ...valData, dataEntrada: e.target.value }); }}
+                    className={getInputCls(hasValError('dataEntrada'))}
+                  />
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Endereço Completo *</label>
-                  <input required value={valData.endereco} onChange={e => setValData({ ...valData, endereco: e.target.value })} className={inputCls} placeholder="Rua, número, cidade..." />
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Endereço Completo <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    required
+                    value={valData.endereco}
+                    onChange={e => { clearValError('endereco'); setValData({ ...valData, endereco: e.target.value }); }}
+                    className={getInputCls(hasValError('endereco'))}
+                    placeholder="Rua, número, cidade..."
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Vendedor *</label>
-                  <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Vendedor <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={getInputCls(hasValError('vendedorResponsavel'))}>
                     <option value="">Selecione...</option>
                     {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
                       <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
@@ -477,8 +591,15 @@ export const ClientesModule = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Suporte *</label>
-                  <select required value={valData.suporteResponsavel} onChange={e => setValData({ ...valData, suporteResponsavel: e.target.value })} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Suporte <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select
+                    required
+                    value={valData.suporteResponsavel}
+                    onChange={e => { clearValError('suporteResponsavel'); setValData({ ...valData, suporteResponsavel: e.target.value }); }}
+                    className={getInputCls(hasValError('suporteResponsavel'))}
+                  >
                     <option value="">Selecione...</option>
                     {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Administrador' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')).map(f => (
                       <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
@@ -486,8 +607,6 @@ export const ClientesModule = () => {
                   </select>
                 </div>
               </div>
-
-              {/* Modalidade de Venda movida para cima, junto ao Método de Pagamento */}
 
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
                 <button type="button" onClick={() => setIsValidateModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
@@ -508,27 +627,96 @@ export const ClientesModule = () => {
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Novo Cliente</h3>
               <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
             </div>
+
+            {/* Error Banner */}
+            {addErrors.length > 0 && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <p className="font-semibold text-red-800 dark:text-red-200">
+                      Por favor, preencha os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {addErrors.map(err => (
+                        <span
+                          key={err.field}
+                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
+                        >
+                          • {err.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSaveCliente} noValidate className="space-y-3 text-xs">
-              <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Nome *</label><input required value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} className={inputCls} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Empresa</label><input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} /></div>
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Telefone</label><input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} /></div>
+              <div>
+                <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                  Nome <span className="text-red-500 font-bold ml-0.5">*</span>
+                </label>
+                <input
+                  required
+                  value={formData.nome}
+                  onChange={e => { clearAddError('nome'); setFormData({ ...formData, nome: e.target.value }); }}
+                  className={getInputCls(hasAddError('nome'))}
+                  placeholder="Nome do cliente ou responsável"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">E-mail</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} /></div>
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Data de Entrada</label><input type="date" required value={formData.dataEntrada} onChange={e => setFormData({ ...formData, dataEntrada: e.target.value })} className={inputCls} /></div>
+                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Empresa</label><input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} placeholder="Nome da imobiliária / empresa" /></div>
+                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Telefone</label><input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(00) 00000-0000" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">E-mail</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="cliente@email.com" /></div>
+                <div>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.dataEntrada}
+                    onChange={e => { clearAddError('dataEntrada'); setFormData({ ...formData, dataEntrada: e.target.value }); }}
+                    className={getInputCls(hasAddError('dataEntrada'))}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Plano</label>
-                  <select value={formData.plano} onChange={e => { const p = planos.find(x => x.plano === e.target.value); setFormData({ ...formData, plano: e.target.value, mrr: p ? p.mensal : 350 }); }} className={inputCls}>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Plano <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select
+                    value={formData.plano}
+                    onChange={e => {
+                      clearAddError('plano');
+                      const p = planos.find(x => x.plano === e.target.value);
+                      setFormData({ ...formData, plano: e.target.value, mrr: p ? p.mensal : 350 });
+                    }}
+                    className={getInputCls(hasAddError('plano'))}
+                  >
                     {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Pagamento</label>
-                  <select value={formData.metodoPagamento} onChange={e => setFormData({ ...formData, metodoPagamento: e.target.value })} className={inputCls}>
-                    <option value="Pix">Pix</option><option value="Boleto Bancário">Boleto</option><option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <select
+                    value={formData.metodoPagamento}
+                    onChange={e => {
+                      clearAddError('metodoPagamento');
+                      setFormData({ ...formData, metodoPagamento: e.target.value });
+                    }}
+                    className={getInputCls(hasAddError('metodoPagamento'))}
+                  >
+                    <option value="Pix">Pix</option>
+                    <option value="Boleto Bancário">Boleto</option>
+                    <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
+                    <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
                   </select>
                 </div>
               </div>
@@ -556,7 +744,9 @@ export const ClientesModule = () => {
               setIsChurnModalOpen(false);
             }} className="space-y-3 text-xs">
               <div>
-                <label className="block text-gray-500 dark:text-gray-400 mb-1">Data de Cancelamento *</label>
+                <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                  Data de Cancelamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                </label>
                 <input type="date" required value={churnData.date} onChange={e => setChurnData({ ...churnData, date: e.target.value })} className={inputCls} />
               </div>
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
