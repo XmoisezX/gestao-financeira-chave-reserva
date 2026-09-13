@@ -49,17 +49,19 @@ export const LoginView = () => {
           <img
             src={customBrand.logoUrl}
             alt="Logo"
-            className="w-14 h-14 rounded-2xl object-contain mx-auto shadow-md"
+            className="max-h-16 max-w-[220px] w-auto object-contain mx-auto shadow-sm"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         ) : (
-          <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-md">
-            <Key className="w-6 h-6 text-white" />
-          </div>
+          <>
+            <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-md">
+              <Key className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Chave Reserva
+            </h1>
+          </>
         )}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-          {customBrand?.appName || 'Chave Reserva'}
-        </h1>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           Gestão Financeira, CRM & Projeção Estratégica
         </p>

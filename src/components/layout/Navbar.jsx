@@ -56,23 +56,27 @@ export const Sidebar = () => {
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* Brand */}
-        <div className="flex items-center gap-2.5 px-4 h-14 border-b border-gray-200 dark:border-gray-800 shrink-0">
+        <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'px-4'} h-14 border-b border-gray-200 dark:border-gray-800 shrink-0 overflow-hidden`}>
           {customBrand?.logoUrl ? (
-            <img
-              src={customBrand.logoUrl}
-              alt="Logo"
-              className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-sm">
-              <Key className="w-4 h-4 text-white" />
+            <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'justify-start max-w-full'}`}>
+              <img
+                src={customBrand.logoUrl}
+                alt="Logo"
+                className={`object-contain ${collapsed ? 'max-h-8 max-w-[36px]' : 'max-h-10 max-w-[190px] w-auto'} transition-all`}
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
             </div>
-          )}
-          {!collapsed && (
-            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight truncate">
-              {customBrand?.appName || 'Chave Reserva'}
-            </span>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-sm">
+                <Key className="w-4 h-4 text-white" />
+              </div>
+              {!collapsed && (
+                <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight truncate">
+                  Chave Reserva
+                </span>
+              )}
+            </div>
           )}
         </div>
 
