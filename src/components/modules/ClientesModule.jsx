@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatDateBR } from '../../utils/formatters';
-import { Users, Search, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Search, Plus, Trash2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 export const ClientesModule = () => {
   const {
@@ -22,6 +22,7 @@ export const ClientesModule = () => {
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [validateErrors, setValidateErrors] = useState([]);
   const [selectedPendingId, setSelectedPendingId] = useState(null);
+  const [vendedorDesejaSuporte, setVendedorDesejaSuporte] = useState(true);
   const [valData, setValData] = useState({
     cpfCnpj: '',
     endereco: '',
@@ -41,6 +42,24 @@ export const ClientesModule = () => {
   // Churn Modal
   const [isChurnModalOpen, setIsChurnModalOpen] = useState(false);
   const [churnData, setChurnData] = useState({ id: null, date: new Date().toISOString().split('T')[0] });
+
+  const getRouletteSupportAgent = () => {
+    const activeSupport = (funcionarios || []).filter(f => 
+      f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')
+    );
+    if (activeSupport.length === 0) {
+      const adminFallback = (funcionarios || []).filter(f => f.status === 'Ativo' && f.cargo === 'Administrador');
+      if (adminFallback.length > 0) return adminFallback[0].nome;
+      return 'Equipe Suporte';
+    }
+    // Fair distribution based on active client count
+    const supportWithCounts = activeSupport.map(agent => ({
+      name: agent.nome,
+      count: (clientes || []).filter(c => c.suporteResponsavel === agent.nome && c.status === 'Ativo').length
+    }));
+    supportWithCounts.sort((a, b) => a.count - b.count);
+    return supportWithCounts[0].name;
+  };
 
   const getSellerInfo = (sellerName) => {
     if (!sellerName) return { name: '—', photoUrl: null, initial: '?' };
@@ -135,10 +154,14 @@ export const ClientesModule = () => {
   const handleOpenValidate = (cliente) => {
     setSelectedPendingId(cliente.id);
     setValidateErrors([]);
+    const seller = cliente.vendedorResponsavel || user?.name || '';
+    const hasOptedSupport = cliente.suporteResponsavel ? (cliente.suporteResponsavel === seller) : true;
+    setVendedorDesejaSuporte(hasOptedSupport);
+
     setValData({
       cpfCnpj: cliente.cpfCnpj || '',
       endereco: cliente.endereco || '',
-      vendedorResponsavel: cliente.vendedorResponsavel || '',
+      vendedorResponsavel: seller,
       suporteResponsavel: cliente.suporteResponsavel || '',
       modalidade: cliente.modalidade || 'mensal',
       desconto: cliente.desconto || 0,
@@ -286,9 +309,27 @@ export const ClientesModule = () => {
     if (!valData.metodoPagamento?.trim()) errors.push({ field: 'metodoPagamento', label: 'Método de Pagamento' });
     if (!valData.modalidade?.trim()) errors.push({ field: 'modalidade', label: 'Modalidade de Venda' });
     if (!valData.dataEntrada?.trim()) errors.push({ field: 'dataEntrada', label: 'Data de Entrada' });
-    if (!valData.endereco?.trim()) errors.push({ field: 'endereco', label: 'Endereço Completo' });
+    if (!valData.endereco?.trim()) errors.push({ field: 'endereco', label: 'Endereço Completo da Imobiliária/Corretor' });
     if (!valData.vendedorResponsavel?.trim()) errors.push({ field: 'vendedorResponsavel', label: 'Vendedor' });
-    if (!valData.suporteResponsavel?.trim()) errors.push({ field: 'suporteResponsavel', label: 'Suporte' });
+
+    let finalSuporte = valData.suporteResponsavel;
+    if (isAdmin) {
+      if (!valData.suporteResponsavel?.trim()) {
+        errors.push({ field: 'suporteResponsavel', label: 'Suporte' });
+      }
+    } else {
+      // Non-admin (Vendedor)
+      if (valData.modalidade === 'anualVista') {
+        if (vendedorDesejaSuporte) {
+          finalSuporte = valData.vendedorResponsavel || user?.name || 'Vendedor';
+        } else {
+          finalSuporte = getRouletteSupportAgent();
+        }
+      } else {
+        // Mensal / Anual Parcelado -> Roleta Automática
+        finalSuporte = getRouletteSupportAgent();
+      }
+    }
 
     if (errors.length > 0) {
       setValidateErrors(errors);
@@ -296,13 +337,18 @@ export const ClientesModule = () => {
     }
     setValidateErrors([]);
     
+    const finalData = {
+      ...valData,
+      suporteResponsavel: finalSuporte
+    };
+
     const client = clientes.find(c => c.id === selectedPendingId);
     if (client && client.status === 'Pendente') {
-      validateClientSale(selectedPendingId, valData);
-      addAuditLog('Validação de Cliente', `Cliente "${client.empresa || client.nome}" validado e ativado. Vendedor: ${valData.vendedorResponsavel}, Suporte: ${valData.suporteResponsavel}, MRR: R$${valData.mrr}`);
+      validateClientSale(selectedPendingId, finalData);
+      addAuditLog('Validação de Cliente', `Cliente "${client.empresa || client.nome}" validado e ativado. Vendedor: ${finalData.vendedorResponsavel}, Suporte: ${finalData.suporteResponsavel}, Modalidade: ${finalData.modalidade}, MRR: R$${finalData.mrr}`);
     } else {
-      updateCliente(selectedPendingId, valData);
-      addAuditLog('Edição de Cliente', `Dados de "${client?.empresa || client?.nome}" atualizados. MRR: R$${valData.mrr}`);
+      updateCliente(selectedPendingId, finalData);
+      addAuditLog('Edição de Cliente', `Dados de "${client?.empresa || client?.nome}" atualizados. MRR: R$${finalData.mrr}`);
     }
     
     setIsValidateModalOpen(false);
@@ -613,7 +659,7 @@ export const ClientesModule = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
                       Endereço Completo <span className="text-red-500 font-bold ml-0.5">*</span>
                     </label>
                     <input
@@ -621,8 +667,12 @@ export const ClientesModule = () => {
                       value={valData.endereco}
                       onChange={e => { clearValError('endereco'); setValData({ ...valData, endereco: e.target.value }); }}
                       className={getInputCls(hasValError('endereco'))}
-                      placeholder="Rua, número, cidade..."
+                      placeholder="Rua, número, sala/complemento, bairro, cidade - UF"
                     />
+                    <p className="text-[10.5px] text-amber-600 dark:text-amber-400 mt-1 leading-tight flex items-start gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <span>Endereço da imobiliária ou do corretor autônomo (<strong>não preencher o do sócio</strong>).</span>
+                    </p>
                   </div>
                 </div>
 
@@ -631,28 +681,78 @@ export const ClientesModule = () => {
                     <label className="block text-gray-500 dark:text-gray-400 mb-1">
                       Vendedor <span className="text-red-500 font-bold ml-0.5">*</span>
                     </label>
-                    <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={getInputCls(hasValError('vendedorResponsavel'))}>
-                      <option value="">Selecione...</option>
-                      {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
-                        <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
-                      ))}
-                    </select>
+                    {isAdmin ? (
+                      <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={getInputCls(hasValError('vendedorResponsavel'))}>
+                        <option value="">Selecione...</option>
+                        {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
+                          <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        disabled
+                        value={valData.vendedorResponsavel || user?.name || 'Vendedor'}
+                        className={`${inputCls} bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed`}
+                      />
+                    )}
                   </div>
+
                   <div>
                     <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                      Suporte <span className="text-red-500 font-bold ml-0.5">*</span>
+                      Suporte Responsável {isAdmin && <span className="text-red-500 font-bold ml-0.5">*</span>}
                     </label>
-                    <select
-                      required
-                      value={valData.suporteResponsavel}
-                      onChange={e => { clearValError('suporteResponsavel'); setValData({ ...valData, suporteResponsavel: e.target.value }); }}
-                      className={getInputCls(hasValError('suporteResponsavel'))}
-                    >
-                      <option value="">Selecione...</option>
-                      {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Administrador' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')).map(f => (
-                        <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
-                      ))}
-                    </select>
+
+                    {isAdmin ? (
+                      <select
+                        required
+                        value={valData.suporteResponsavel}
+                        onChange={e => { clearValError('suporteResponsavel'); setValData({ ...valData, suporteResponsavel: e.target.value }); }}
+                        className={getInputCls(hasValError('suporteResponsavel'))}
+                      >
+                        <option value="">Selecione o suporte...</option>
+                        {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Administrador' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')).map(f => (
+                          <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                        ))}
+                      </select>
+                    ) : valData.modalidade === 'anualVista' ? (
+                      <div className="p-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-1.5">
+                        <label className="flex items-start gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={vendedorDesejaSuporte}
+                            onChange={e => setVendedorDesejaSuporte(e.target.checked)}
+                            className="w-4 h-4 mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-700 cursor-pointer"
+                          />
+                          <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 leading-snug">
+                            O vendedor deseja realizar o suporte deste cliente?
+                          </span>
+                        </label>
+                        <div className="pl-6 text-[11px]">
+                          {vendedorDesejaSuporte ? (
+                            <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                              Suporte atribuído a você ({valData.vendedorResponsavel || user?.name || 'Vendedor'}).
+                            </span>
+                          ) : (
+                            <span className="text-gray-500 dark:text-gray-400">
+                              O suporte será definido pela roleta automática entre a equipe de suporte.
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-lg border border-blue-200 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/30 flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-semibold text-blue-900 dark:text-blue-200">
+                            Roleta Automática de Suporte
+                          </p>
+                          <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-tight mt-0.5">
+                            O suporte será definido por uma roleta automática entre a equipe de suporte.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
