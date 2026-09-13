@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 import { recalculateProjecaoMensal, getNextMonthString, calculateAverageTicket } from '../utils/financialEngine';
 import {
   initialProjecaoMensal,
@@ -85,7 +86,7 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Main state with localStorage persistence
+  // Main state with localStorage fallback
   const [leads, setLeads] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.LEADS);
     return saved ? JSON.parse(saved) : initialLeads;
@@ -192,6 +193,10 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialResumoExecutivo;
   });
 
+  const isSupabaseLoaded = useRef(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+
   // Computed Roles & Actions
   const isAdmin = Boolean(
     user?.role === 'Administrador' ||
@@ -264,7 +269,47 @@ export const AppProvider = ({ children }) => {
     const cleanEmail = (emailInput || '').toLowerCase().trim();
     const cleanPass = (passwordInput || '').trim();
 
-    // 1. Master Super Admin login (Moisés Torres)
+    // 1. Primary Auth: Direct Supabase Cloud Authentication
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPass,
+      });
+
+      if (data?.user) {
+        const meta = data.user.user_metadata || {};
+        
+        // Find matching local details if any
+        const localMatch = (funcionarios || []).find(f => f.email && f.email.toLowerCase().trim() === cleanEmail);
+
+        if (meta.status === 'Inativo' || localMatch?.status === 'Inativo') {
+          await supabase.auth.signOut();
+          return { success: false, message: 'Este usuário está inativo no sistema. Contate o administrador.' };
+        }
+
+        const role = localMatch?.cargo || meta.cargo || (cleanEmail === 'moiseztorres100@gmail.com' ? 'Administrador' : 'Vendedor');
+        const name = localMatch?.nome || meta.nome || meta.full_name || cleanEmail.split('@')[0];
+        const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
+
+        const loggedUser = {
+          id: data.user.id,
+          email: data.user.email,
+          name,
+          role,
+          cpf: meta.cpf || localMatch?.cpf || '',
+          pix: meta.pix || localMatch?.pix || '',
+          avatar: initials
+        };
+
+        setUser(loggedUser);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(loggedUser));
+        return { success: true, user: loggedUser };
+      }
+    } catch (err) {
+      console.warn('Erro ao autenticar no Supabase:', err);
+    }
+
+    // 2. Master Super Admin fallback for primary master account
     if (cleanEmail === 'moiseztorres100@gmail.com' && cleanPass === 'Geral123@') {
       const adminUser = {
         id: 'func-1',
@@ -280,7 +325,7 @@ export const AppProvider = ({ children }) => {
       return { success: true, user: adminUser };
     }
 
-    // 2. Local credentials authentication
+    // 3. Local state fallback (for offline or local users)
     const currentFuncionarios = (funcionarios && funcionarios.length > 0)
       ? funcionarios
       : JSON.parse(localStorage.getItem(STORAGE_KEYS.FUNCIONARIOS) || '[]');
@@ -320,6 +365,9 @@ export const AppProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
     setUser(null);
     localStorage.removeItem(STORAGE_KEYS.USER);
   };
@@ -337,12 +385,334 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  // Local persistence helper
-  const syncData = (key, data) => {
-    localStorage.setItem(key, JSON.stringify(data));
+  // Helper to sync data to dedicated relational tables in Supabase
+  const syncRelationalTable = async (key, data) => {
+    try {
+      if (key === STORAGE_KEYS.PROJECAO_MENSAL && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          month: p.month,
+          clientes_ativos_meta: p.clientesAtivosMeta || p.clientesAtivos || 0,
+          churn: p.churn || 0,
+          novos_liquidos_meta: p.novosLiquidosMeta || p.novosClientes || 0,
+          is_locked_novos: p.isLockedNovos || false,
+          novos_brutos_necessarios: p.novosBrutosNecessarios || 0,
+          mrr_meta: p.mrrMeta || 0,
+          mrr_aluguel: p.mrrAluguel || 0,
+          mrr_pacotes: p.mrrPacotes || 0,
+          mrr_total: p.mrrTotal || 0,
+          receita_empresa: p.receitaEmpresa || 0,
+          comissao_vendas: p.comissaoVendas || 0,
+          comissao_suporte: p.comissaoSuporte || 0,
+          novos_trafego: p.novosTrafego || 0,
+          cac_trafego: p.cacTrafego || 0,
+          investimento_trafego: p.investimentoTrafego || 0,
+          novos_lista: p.novosLista || 0,
+          contatos_frios: p.contatosFrios || 0,
+          custo_lista_fria: p.custoListaFria || 0,
+          novos_influencer: p.novosInfluencer || 0,
+          custo_1a_influencer: p.custo1aInfluencer || 0,
+          custo_recorrente_influencer: p.custoRecorrenteInfluencer || 0,
+          pro_labore_dev: p.proLaboreDev || 0,
+          pro_labore_gestor: p.proLaboreGestor || 0,
+          pro_labore_mkt: p.proLaboreMkt || 0,
+          pro_labore_fin: p.proLaboreFin || 0,
+          suporte_fixo: p.suporteFixo || 0,
+          apoio_tecnico: p.apoioTecnico || 0,
+          sdr: p.sdr || 0,
+          infraestrutura: p.infraestrutura || 0,
+          taxas_pagamento: p.taxasPagamento || 0,
+          impostos: p.impostos || 0,
+          resultado_bruto: p.resultadoBruto || 0,
+          resultado_liquido: p.resultadoLiquido || 0,
+          receita_caixa: p.receitaCaixa || 0,
+          impostos_caixa_8: p.impostosCaixa8 || 0,
+          resultado_caixa: p.resultadoCaixa || 0,
+          saldo_caixa_acumulado: p.saldoCaixaAcumulado || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('projecao_mensal').upsert(formatted, { onConflict: 'month' });
+      } else if (key === STORAGE_KEYS.PLANOS && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          plano: p.plano,
+          mensal: p.mensal || 0,
+          anual_mensal: p.anualMensal || 0,
+          anual_vista: p.anualVista || 0,
+          previsao_vendas: p.previsaoVendas || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('planos').upsert(formatted, { onConflict: 'plano' });
+      } else if (key === STORAGE_KEYS.PREMISSAS && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map(p => ({
+          premissa: p.premissa,
+          valor: String(p.valor || ''),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('premissas').upsert(formatted, { onConflict: 'premissa' });
+      } else if (key === STORAGE_KEYS.ALUGUEL && Array.isArray(data) && data.length > 0) {
+        await supabase.from('aluguel').delete().neq('id', 0);
+        const formatted = data.map(a => ({
+          plano: a.plano,
+          mensal: a.mensal || 0,
+          anual_mensal: a.anualMensal || 0,
+          anual_vista: a.anualVista || 0,
+          previsao_vendas: a.previsaoVendas || 0,
+          vendido_base: a.vendidoBase || '',
+          previsao_lancamento: a.previsaoLancamento || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('aluguel').insert(formatted);
+      } else if (key === STORAGE_KEYS.PACOTES && Array.isArray(data) && data.length > 0) {
+        await supabase.from('pacotes').delete().neq('id', 0);
+        const formatted = data.map(p => ({
+          pacote: p.pacote,
+          qtd: p.qtd || 1,
+          valor: p.valor || 0,
+          previsao_vendas: p.previsaoVendas || 0,
+          vendido_base: p.vendidoBase || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('pacotes').insert(formatted);
+      } else if (key === STORAGE_KEYS.EQUIPE && Array.isArray(data) && data.length > 0) {
+        await supabase.from('equipe').delete().neq('id', 0);
+        const formatted = data.map(e => ({
+          area: e.area,
+          modelo: e.modelo || '',
+          remuneracao: e.remuneracao || '',
+          gatilho: e.gatilho || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('equipe').insert(formatted);
+      } else if (key === STORAGE_KEYS.INFRAESTRUTURA && Array.isArray(data) && data.length > 0) {
+        await supabase.from('infraestrutura').delete().neq('id', 0);
+        const formatted = data.map(i => ({
+          faixa: i.faixa,
+          total: i.total || 0,
+          itens: i.itens || [],
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('infraestrutura').insert(formatted);
+      } else if (key === STORAGE_KEYS.AQUISICAO && Array.isArray(data) && data.length > 0) {
+        await supabase.from('aquisicao').delete().neq('id', 0);
+        const formatted = data.map(a => ({
+          canal: a.canal,
+          participacao: a.participacao || '',
+          regra: a.regra || '',
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('aquisicao').insert(formatted);
+      } else if (key === STORAGE_KEYS.TAXAS_PAGAMENTO && Array.isArray(data) && data.length > 0) {
+        await supabase.from('taxas_pagamento').delete().neq('id', 0);
+        const formatted = data.map(t => ({
+          metodo: t.metodo,
+          taxa_fixa: t.taxaFixa || 0,
+          taxa_var: t.taxaVar || 0,
+          uso: t.uso || 0,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('taxas_pagamento').insert(formatted);
+      } else if (key === STORAGE_KEYS.RESUMO_EXECUTIVO && data) {
+        await supabase.from('resumo_executivo').upsert({
+          key_name: 'main_summary',
+          data: data,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key_name' });
+      } else if (key === STORAGE_KEYS.LEADS && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(l => ({
+            id: String(l.id),
+            nome: l.nome,
+            empresa: l.empresa || '',
+            email: l.email || '',
+            telefone: l.telefone || '',
+            plano_interesse: l.planoInteresse || l.plano || '',
+            mrr_estimado: l.mrrEstimado || l.mrr || 0,
+            canal: l.canal || '',
+            estagio: l.estagio || '',
+            data_criacao: l.dataCriacao || l.data || new Date().toISOString().split('T')[0],
+            observacoes: l.observacoes || l.observacao || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('leads').upsert(formatted, { onConflict: 'id' });
+        }
+      } else if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(c => ({
+            id: String(c.id),
+            nome: c.nome,
+            empresa: c.empresa || '',
+            email: c.email || '',
+            telefone: c.telefone || '',
+            plano: c.plano || '',
+            mrr: c.mrr || 0,
+            modulos_adicionais: c.modulosAdicionais || [],
+            metodo_pagamento: c.metodoPagamento || '',
+            status: c.status || 'Ativo',
+            data_entrada: c.dataEntrada || new Date().toISOString().split('T')[0],
+            data_cancelamento: c.dataCancelamento || null,
+            canal_origem: c.canalOrigem || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('clientes').upsert(formatted, { onConflict: 'id' });
+        }
+      } else if (key === STORAGE_KEYS.LANCAMENTOS && Array.isArray(data)) {
+        if (data.length > 0) {
+          const formatted = data.map(l => ({
+            id: String(l.id),
+            data: l.data || new Date().toISOString().split('T')[0],
+            novos_clientes: l.novosClientes || 0,
+            gasto_trafego: l.gastoTrafego || 0,
+            comissoes_pagas: l.comissaoVendas || l.comissoesPagas || 0,
+            custos_operacionais: l.custosOperacionais || 0,
+            receita_reais: l.receitaReais || 0,
+            observacoes: l.observacao || l.observacoes || '',
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('lancamentos_diarios').upsert(formatted, { onConflict: 'id' });
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao atualizar tabela relacional Supabase:', key, err);
+    }
   };
 
-  // Sync state changes to LocalStorage
+  // Helper for dual persistence (LocalStorage + Supabase app_state + Supabase Relational Tables)
+  const syncData = async (key, data) => {
+    localStorage.setItem(key, JSON.stringify(data));
+    
+    // Do NOT push to Supabase until initial load from Supabase has completed
+    if (!isSupabaseLoaded.current) return;
+
+    try {
+      // 1. Sync to app_state key-value store
+      await supabase.from('app_state').upsert({
+        key,
+        value: data,
+        updated_at: new Date().toISOString()
+      });
+
+      // 2. Sync to dedicated individual relational table
+      await syncRelationalTable(key, data);
+
+      setLastSyncedAt(new Date());
+    } catch (err) {
+      console.warn('Erro ao sincronizar chave com Supabase:', key, err);
+    }
+  };
+
+  // Push all current local state to Supabase on-demand
+  const pushLocalStateToSupabase = async () => {
+    setIsSyncing(true);
+    try {
+      const itemsToSync = [
+        { key: STORAGE_KEYS.LEADS, value: leads },
+        { key: STORAGE_KEYS.CLIENTES, value: clientes },
+        { key: STORAGE_KEYS.LANCAMENTOS, value: lancamentos },
+        { key: STORAGE_KEYS.PROJECAO_MENSAL, value: projecaoMensal },
+        { key: STORAGE_KEYS.PLANOS, value: planos },
+        { key: STORAGE_KEYS.ALUGUEL, value: aluguel },
+        { key: STORAGE_KEYS.PACOTES, value: pacotes },
+        { key: STORAGE_KEYS.EQUIPE, value: equipe },
+        { key: STORAGE_KEYS.INFRAESTRUTURA, value: infraestrutura },
+        { key: STORAGE_KEYS.AQUISICAO, value: aquisicao },
+        { key: STORAGE_KEYS.PREMISSAS, value: premissas },
+        { key: STORAGE_KEYS.TAXAS_PAGAMENTO, value: taxasPagamento },
+        { key: STORAGE_KEYS.RESUMO_EXECUTIVO, value: resumoExecutivo },
+        { key: STORAGE_KEYS.FUNCIONARIOS, value: funcionarios },
+        { key: STORAGE_KEYS.AUDIT_LOG, value: auditLog },
+        { key: STORAGE_KEYS.NOTIFICACOES, value: notificacoes },
+      ];
+
+      for (const item of itemsToSync) {
+        await supabase.from('app_state').upsert({
+          key: item.key,
+          value: item.value,
+          updated_at: new Date().toISOString()
+        });
+        await syncRelationalTable(item.key, item.value);
+      }
+      setLastSyncedAt(new Date());
+      return { success: true };
+    } catch (err) {
+      console.error('Erro ao enviar estado para Supabase:', err);
+      return { success: false, error: err.message || err };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Initial load from Supabase Database on app startup
+  const fetchSupabaseData = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.from('app_state').select('*');
+      if (data && data.length > 0) {
+        data.forEach(item => {
+          if (!item.value) return;
+          localStorage.setItem(item.key, JSON.stringify(item.value));
+          if (item.key === STORAGE_KEYS.PROJECAO_MENSAL) setProjecaoMensal(item.value);
+          if (item.key === STORAGE_KEYS.PLANOS) setPlanos(item.value);
+          if (item.key === STORAGE_KEYS.ALUGUEL) setAluguel(item.value);
+          if (item.key === STORAGE_KEYS.PACOTES) setPacotes(item.value);
+          if (item.key === STORAGE_KEYS.EQUIPE) setEquipe(item.value);
+          if (item.key === STORAGE_KEYS.INFRAESTRUTURA) setInfraestrutura(item.value);
+          if (item.key === STORAGE_KEYS.AQUISICAO) setAquisicao(item.value);
+          if (item.key === STORAGE_KEYS.PREMISSAS) setPremissas(item.value);
+          if (item.key === STORAGE_KEYS.TAXAS_PAGAMENTO) setTaxasPagamento(item.value);
+          if (item.key === STORAGE_KEYS.RESUMO_EXECUTIVO) setResumoExecutivo(item.value);
+          if (item.key === STORAGE_KEYS.LEADS) setLeads(item.value);
+          if (item.key === STORAGE_KEYS.CLIENTES) setClientes(item.value);
+          if (item.key === STORAGE_KEYS.LANCAMENTOS) setLancamentos(item.value);
+          if (item.key === STORAGE_KEYS.FUNCIONARIOS) setFuncionarios(item.value);
+          if (item.key === STORAGE_KEYS.AUDIT_LOG) setAuditLog(item.value);
+          if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
+        });
+        setLastSyncedAt(new Date());
+      }
+    } catch (err) {
+      console.warn('Fallback para cache local do navegador:', err);
+    } finally {
+      isSupabaseLoaded.current = true;
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSupabaseData();
+
+    // Supabase Realtime synchronization
+    const channel = supabase
+      .channel('app_state_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state' }, payload => {
+        if (payload.new && payload.new.key) {
+          const item = payload.new;
+          if (item.key === STORAGE_KEYS.PROJECAO_MENSAL && item.value) setProjecaoMensal(item.value);
+          if (item.key === STORAGE_KEYS.PLANOS && item.value) setPlanos(item.value);
+          if (item.key === STORAGE_KEYS.ALUGUEL && item.value) setAluguel(item.value);
+          if (item.key === STORAGE_KEYS.PACOTES && item.value) setPacotes(item.value);
+          if (item.key === STORAGE_KEYS.EQUIPE && item.value) setEquipe(item.value);
+          if (item.key === STORAGE_KEYS.INFRAESTRUTURA && item.value) setInfraestrutura(item.value);
+          if (item.key === STORAGE_KEYS.AQUISICAO && item.value) setAquisicao(item.value);
+          if (item.key === STORAGE_KEYS.PREMISSAS && item.value) setPremissas(item.value);
+          if (item.key === STORAGE_KEYS.TAXAS_PAGAMENTO && item.value) setTaxasPagamento(item.value);
+          if (item.key === STORAGE_KEYS.RESUMO_EXECUTIVO && item.value) setResumoExecutivo(item.value);
+          if (item.key === STORAGE_KEYS.LEADS && item.value) setLeads(item.value);
+          if (item.key === STORAGE_KEYS.CLIENTES && item.value) setClientes(item.value);
+          if (item.key === STORAGE_KEYS.LANCAMENTOS && item.value) setLancamentos(item.value);
+          if (item.key === STORAGE_KEYS.FUNCIONARIOS && item.value) setFuncionarios(item.value);
+          if (item.key === STORAGE_KEYS.AUDIT_LOG && item.value) setAuditLog(item.value);
+          if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
+          localStorage.setItem(item.key, JSON.stringify(item.value));
+          setLastSyncedAt(new Date());
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Sync to LocalStorage + Supabase
   useEffect(() => { syncData(STORAGE_KEYS.LEADS, leads); }, [leads]);
   useEffect(() => { syncData(STORAGE_KEYS.CLIENTES, clientes); }, [clientes]);
   useEffect(() => { syncData(STORAGE_KEYS.LANCAMENTOS, lancamentos); }, [lancamentos]);
@@ -739,6 +1109,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteLead = (id) => {
     setLeads(prev => prev.filter(l => l.id !== id));
+    supabase.from('leads').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   const moveLeadStage = (id, newStage) => {
@@ -903,6 +1274,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteCliente = (id) => {
     setClientes(prev => prev.filter(c => c.id !== id));
+    supabase.from('clientes').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   // Daily Real Log CRUD
@@ -923,6 +1295,7 @@ export const AppProvider = ({ children }) => {
 
   const deleteLancamentoDiario = (id) => {
     setLancamentos(prev => prev.filter(l => l.id !== id));
+    supabase.from('lancamentos_diarios').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   // Reset to initial defaults
@@ -951,8 +1324,68 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Save User to local state and storage
+  // Save User directly to Supabase Auth and state
   const saveFuncionario = async (userData) => {
+    try {
+      if (userData.email && userData.senha) {
+        // Create or update in Supabase Auth via supabaseAdmin
+        const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+          email: userData.email.toLowerCase().trim(),
+          password: userData.senha,
+          email_confirm: true,
+          user_metadata: {
+            nome: userData.nome,
+            cargo: userData.cargo,
+            cpf: userData.cpf,
+            pix: userData.pix,
+            custoMensal: Number(userData.custoMensal) || 0,
+            dataInicio: userData.dataInicio || null,
+            dataFim: userData.dataFim || null,
+            status: userData.status
+          }
+        });
+
+        if (createErr && (createErr.message.includes('already') || createErr.status === 422)) {
+          const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+          const existingUser = listData?.users?.find(u => u.email?.toLowerCase() === userData.email.toLowerCase().trim());
+          if (existingUser) {
+            await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+              password: userData.senha,
+              user_metadata: {
+                nome: userData.nome,
+                cargo: userData.cargo,
+                cpf: userData.cpf,
+                pix: userData.pix,
+                custoMensal: Number(userData.custoMensal) || 0,
+                dataInicio: userData.dataInicio || null,
+                dataFim: userData.dataFim || null,
+                status: userData.status
+              }
+            });
+          }
+        } else if (createErr) {
+          await supabase.auth.signUp({
+            email: userData.email.toLowerCase().trim(),
+            password: userData.senha,
+            options: {
+              data: {
+                nome: userData.nome,
+                cargo: userData.cargo,
+                cpf: userData.cpf,
+                pix: userData.pix,
+                custoMensal: Number(userData.custoMensal) || 0,
+                dataInicio: userData.dataInicio || null,
+                dataFim: userData.dataFim || null,
+                status: userData.status
+              }
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao salvar no Supabase Auth:', err);
+    }
+
     setFuncionarios(prev => {
       const exists = (prev || []).find(f => f.id === userData.id || (f.email && f.email.toLowerCase() === userData.email?.toLowerCase()));
       let updated;
@@ -980,13 +1413,76 @@ export const AppProvider = ({ children }) => {
     return { success: true };
   };
 
-  const deleteFuncionario = async (id) => {
+  const deleteFuncionario = async (id, email) => {
+    try {
+      const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+      const existing = listData?.users?.find(u => u.email?.toLowerCase() === email?.toLowerCase() || u.id === id);
+      if (existing) {
+        await supabaseAdmin.auth.admin.deleteUser(existing.id);
+      }
+    } catch (err) {
+      console.warn('Erro ao excluir no Supabase Auth:', err);
+    }
     setFuncionarios(prev => {
       const updated = (prev || []).filter(f => f.id !== id);
       localStorage.setItem(STORAGE_KEYS.FUNCIONARIOS, JSON.stringify(updated));
       return updated;
     });
   };
+
+  // Sync Supabase Auth users on mount
+  useEffect(() => {
+    const syncUsersFromSupabase = async () => {
+      try {
+        await supabaseAdmin.auth.admin.createUser({
+          email: 'moiseztorres100@gmail.com',
+          password: 'Geral123@',
+          email_confirm: true,
+          user_metadata: {
+            nome: 'Moisés Torres',
+            cargo: 'Administrador',
+            cpf: '000.000.000-00',
+            pix: 'moiseztorres100@gmail.com',
+            custoMensal: 5000,
+            status: 'Ativo'
+          }
+        }).catch(() => {});
+
+        const { data } = await supabaseAdmin.auth.admin.listUsers();
+        if (data?.users && data.users.length > 0) {
+          const fetched = data.users.map(u => ({
+            id: u.id,
+            email: u.email,
+            nome: u.user_metadata?.nome || u.user_metadata?.full_name || u.email.split('@')[0],
+            cargo: u.user_metadata?.cargo || (u.email === 'moiseztorres100@gmail.com' ? 'Administrador' : 'Vendedor'),
+            cpf: u.user_metadata?.cpf || '',
+            pix: u.user_metadata?.pix || '',
+            custoMensal: Number(u.user_metadata?.custoMensal) || 0,
+            status: u.user_metadata?.status || 'Ativo',
+            senha: ''
+          }));
+
+          setFuncionarios(prev => {
+            const currentList = [...(prev || [])];
+            fetched.forEach(fu => {
+              const idx = currentList.findIndex(c => c.email?.toLowerCase() === fu.email?.toLowerCase());
+              if (idx !== -1) {
+                currentList[idx] = { ...currentList[idx], ...fu, senha: currentList[idx].senha || fu.senha };
+              } else {
+                currentList.push(fu);
+              }
+            });
+            localStorage.setItem(STORAGE_KEYS.FUNCIONARIOS, JSON.stringify(currentList));
+            return currentList;
+          });
+        }
+      } catch (e) {
+        console.warn('Erro ao sincronizar do Supabase:', e);
+      }
+    };
+
+    syncUsersFromSupabase();
+  }, []);
 
   // Computed Real-time metrics
   const clientesAtivos = clientes.filter(c => c.status === 'Ativo');
@@ -1084,7 +1580,12 @@ export const AppProvider = ({ children }) => {
       markNotificacaoAsRead,
       markAllNotificacoesAsRead,
       deleteNotificacao,
-      isAdmin
+      isAdmin,
+      // Background Sync status & helpers
+      isSyncing,
+      lastSyncedAt,
+      fetchSupabaseData,
+      pushLocalStateToSupabase
     }}>
       {children}
     </AppContext.Provider>
