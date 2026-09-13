@@ -11,18 +11,23 @@ import { OperacaoDiariaModule } from './components/modules/OperacaoDiariaModule'
 import { ConfiguracoesModule } from './components/modules/ConfiguracoesModule';
 import { FuncionariosModule } from './components/modules/FuncionariosModule';
 import { ComissoesModule } from './components/modules/ComissoesModule';
+import { SuporteModule } from './components/modules/SuporteModule';
 
 const MainContent = () => {
-  const { activeTab, setActiveTab, isAuthenticated, isAdmin } = useApp();
+  const { activeTab, setActiveTab, isAuthenticated, isAdmin, isSupport } = useApp();
   const [isLancamentoModalOpen, setIsLancamentoModalOpen] = useState(false);
 
-  // Route protection: prevent non-admin from accessing financial/admin tabs
+  // Route protection: prevent non-admin from accessing financial/admin tabs, and non-support/non-admin from accessing suporte
   useEffect(() => {
     const adminOnlyTabs = ['metas', 'operacao', 'configuracoes', 'funcionarios'];
-    if (isAuthenticated && !isAdmin && adminOnlyTabs.includes(activeTab)) {
-      setActiveTab('dashboard');
+    if (isAuthenticated) {
+      if (!isAdmin && adminOnlyTabs.includes(activeTab)) {
+        setActiveTab('dashboard');
+      } else if (!isAdmin && !isSupport && activeTab === 'suporte') {
+        setActiveTab('dashboard');
+      }
     }
-  }, [activeTab, isAdmin, isAuthenticated, setActiveTab]);
+  }, [activeTab, isAdmin, isSupport, isAuthenticated, setActiveTab]);
 
   if (!isAuthenticated) {
     return <LoginView />;
@@ -41,6 +46,7 @@ const MainContent = () => {
             {activeTab === 'metas' && <MetasModule />}
             {activeTab === 'crm' && <KanbanModule />}
             {activeTab === 'clientes' && <ClientesModule />}
+            {activeTab === 'suporte' && <SuporteModule />}
             {activeTab === 'comissoes' && <ComissoesModule />}
             {activeTab === 'operacao' && (
               <OperacaoDiariaModule

@@ -7,7 +7,7 @@ export const ClientesModule = () => {
   const {
     clientes, addCliente, updateCliente, churnCliente, reactivateCliente, deleteCliente,
     planos, aluguel, pacotes, funcionarios, addAuditLog, validateClientSale,
-    isAdmin, user
+    isAdmin, isSupport, user, getRouletteSupportAgent
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,6 +42,23 @@ export const ClientesModule = () => {
   // Churn Modal
   const [isChurnModalOpen, setIsChurnModalOpen] = useState(false);
   const [churnData, setChurnData] = useState({ id: null, date: new Date().toISOString().split('T')[0] });
+
+  // Check if validating seller has Support role
+  const assignedSellerHasSupport = useMemo(() => {
+    if (isAdmin) return true;
+    const targetSeller = valData.vendedorResponsavel || user?.name || '';
+    const norm = targetSeller.toLowerCase().trim();
+    if (user && ((user.name && user.name.toLowerCase().trim() === norm) || (user.email && user.email.toLowerCase().trim() === norm))) {
+      return isSupport;
+    }
+    const found = (funcionarios || []).find(f => 
+      (f.nome && f.nome.toLowerCase().trim() === norm) || 
+      (f.email && f.email.toLowerCase().trim() === norm)
+    );
+    if (!found) return isSupport;
+    const cargoStr = (found.cargo || '').toLowerCase();
+    return cargoStr.includes('suporte') || cargoStr.includes('apoio técnico') || cargoStr.includes('administrador');
+  }, [valData.vendedorResponsavel, user, isSupport, funcionarios, isAdmin]);
 
   const getRouletteSupportAgent = () => {
     const activeSupport = (funcionarios || []).filter(f => 
@@ -318,16 +335,12 @@ export const ClientesModule = () => {
         errors.push({ field: 'suporteResponsavel', label: 'Suporte' });
       }
     } else {
-      // Non-admin (Vendedor)
-      if (valData.modalidade === 'anualVista') {
-        if (vendedorDesejaSuporte) {
-          finalSuporte = valData.vendedorResponsavel || user?.name || 'Vendedor';
-        } else {
-          finalSuporte = getRouletteSupportAgent();
-        }
+      // Non-admin (Vendedor): only if seller has Support competence and it is anualVista with checkbox checked
+      if (valData.modalidade === 'anualVista' && assignedSellerHasSupport && vendedorDesejaSuporte) {
+        finalSuporte = valData.vendedorResponsavel || user?.name || 'Vendedor';
       } else {
-        // Mensal / Anual Parcelado -> Roleta Automática
-        finalSuporte = getRouletteSupportAgent();
+        // Mensal, anual parcelado, or seller without support competency -> Automatic roulette
+        finalSuporte = getRouletteSupportAgent ? getRouletteSupportAgent() : 'Equipe Suporte';
       }
     }
 

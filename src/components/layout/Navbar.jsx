@@ -10,11 +10,12 @@ import {
   Key,
   PanelLeftClose,
   PanelLeftOpen,
-  DollarSign
+  DollarSign,
+  Headphones
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin, customBrand } = useApp();
+  const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin, isSupport, customBrand } = useApp();
   const [collapsed, setCollapsed] = useState(false);
 
   // Calculate pending commissions
@@ -24,9 +25,9 @@ export const Sidebar = () => {
       return !c.comissaoVendaPaga || !c.comissaoSuportePaga;
     }
     const isSeller = c.vendedorResponsavel === user?.name || c.vendedorResponsavel === user?.email;
-    const isSupport = c.suporteResponsavel === user?.name || c.suporteResponsavel === user?.email;
+    const isSupportUser = c.suporteResponsavel === user?.name || c.suporteResponsavel === user?.email;
     const vendPendente = isSeller && !c.comissaoVendaPaga;
-    const supPendente = isSupport && !c.comissaoSuportePaga;
+    const supPendente = isSupportUser && !c.comissaoSuportePaga;
     return vendPendente || supPendente;
   }).length;
 
@@ -35,13 +36,18 @@ export const Sidebar = () => {
     { id: 'metas', label: 'Metas', icon: Target, adminOnly: true },
     { id: 'crm', label: 'Funil de Vendas', icon: Kanban },
     { id: 'clientes', label: 'Clientes', icon: Users },
+    { id: 'suporte', label: 'Suporte', icon: Headphones, supportOrAdminOnly: true },
     { id: 'comissoes', label: 'Comissões', icon: DollarSign, badge: pendingComissoesCount },
     { id: 'operacao', label: 'Operação Diária', icon: TrendingUp, adminOnly: true },
     { id: 'configuracoes', label: 'Configurações', icon: Settings, adminOnly: true },
     { id: 'funcionarios', label: 'Usuários', icon: Users, adminOnly: true },
   ];
 
-  const navItems = allNavItems.filter(item => !item.adminOnly || isAdmin);
+  const navItems = allNavItems.filter(item => {
+    if (item.adminOnly) return isAdmin;
+    if (item.supportOrAdminOnly) return isAdmin || isSupport;
+    return true;
+  });
 
   return (
     <aside

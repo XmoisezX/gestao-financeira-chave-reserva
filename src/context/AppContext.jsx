@@ -40,6 +40,7 @@ const STORAGE_KEYS = {
   AUDIT_LOG: 'chave_reserva_audit_log_v1',
   NOTIFICACOES: 'chave_reserva_notificacoes_v1',
   BRAND: 'chave_reserva_custom_brand_v1',
+  ROLETA: 'chave_reserva_roleta_v1',
 };
 
 export const AppProvider = ({ children }) => {
@@ -228,15 +229,79 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  // Support Roulette Configuration
+  const [roletaConfig, setRoletaConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ROLETA);
+      return saved ? JSON.parse(saved) : { modo: 'balanceado', participantesInativos: [] };
+    } catch {
+      return { modo: 'balanceado', participantesInativos: [] };
+    }
+  });
+
+  const updateRoletaConfig = (newConfig) => {
+    setRoletaConfig(prev => {
+      const updated = { ...prev, ...newConfig };
+      localStorage.setItem(STORAGE_KEYS.ROLETA, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const isSupabaseLoaded = useRef(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
-  // Computed Roles & Actions
+  // Computed Roles & Permissions (supporting single or multiple cargos e.g. "Vendedor, Suporte")
+  const userCargoStr = ((user?.role || user?.cargo || '') + '').toLowerCase();
   const isAdmin = Boolean(
-    user?.role === 'Administrador' ||
-    user?.role === 'Gestor'
+    userCargoStr.includes('administrador') ||
+    userCargoStr.includes('gestor')
   );
+
+  const isSupport = Boolean(
+    isAdmin ||
+    userCargoStr.includes('suporte') ||
+    userCargoStr.includes('apoio técnico')
+  );
+
+  const isSeller = Boolean(
+    isAdmin ||
+    userCargoStr.includes('vendedor') ||
+    userCargoStr.includes('sdr')
+  );
+
+  // Helper to pick next support agent via Roulette
+  const getRouletteSupportAgent = () => {
+    const activeStaff = (funcionarios || []).filter(f => {
+      if (f.status !== 'Ativo') return false;
+      const cargoStr = (f.cargo || '').toLowerCase();
+      const hasSupportCargo = cargoStr.includes('suporte') || cargoStr.includes('apoio técnico') || cargoStr.includes('administrador');
+      if (!hasSupportCargo) return false;
+      if (roletaConfig?.participantesInativos?.includes(f.id) || roletaConfig?.participantesInativos?.includes(f.nome)) {
+        return false;
+      }
+      return true;
+    });
+
+    if (activeStaff.length === 0) {
+      const fallbackStaff = (funcionarios || []).filter(f => f.status === 'Ativo' && (f.cargo || '').toLowerCase().includes('administrador'));
+      if (fallbackStaff.length > 0) return fallbackStaff[0].nome;
+      return 'Equipe Suporte';
+    }
+
+    if (roletaConfig?.modo === 'aleatorio') {
+      const randomIndex = Math.floor(Math.random() * activeStaff.length);
+      return activeStaff[randomIndex].nome;
+    }
+
+    // Default 'balanceado': assign to the one with lowest active client count
+    const staffWithCounts = activeStaff.map(agent => ({
+      name: agent.nome,
+      count: (clientes || []).filter(c => c.suporteResponsavel === agent.nome && c.status === 'Ativo').length
+    }));
+    staffWithCounts.sort((a, b) => a.count - b.count);
+    return staffWithCounts[0].name;
+  };
 
   const addAuditLog = (action, details, userName) => {
     const entry = {
@@ -1627,6 +1692,12 @@ export const AppProvider = ({ children }) => {
       markAllNotificacoesAsRead,
       deleteNotificacao,
       isAdmin,
+      isSupport,
+      isSeller,
+      // Support Roulette
+      roletaConfig,
+      updateRoletaConfig,
+      getRouletteSupportAgent,
       // Brand Customization (Logo & Favicon)
       customBrand,
       updateCustomBrand,
