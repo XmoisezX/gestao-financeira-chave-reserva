@@ -905,17 +905,19 @@ export const ConfiguracoesModule = () => {
                       <img
                         src={brandForm.logoUrl}
                         alt="Logo Preview"
-                        className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
+                        className="max-h-9 max-w-[170px] w-auto object-contain shadow-xs"
                         onError={e => { e.target.style.display = 'none'; }}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
-                        <Key className="w-4 h-4 text-white" />
-                      </div>
+                      <>
+                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                          <Key className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-sm font-bold text-gray-900 tracking-tight truncate">
+                          Chave Reserva
+                        </span>
+                      </>
                     )}
-                    <span className="text-sm font-bold text-gray-900 tracking-tight truncate">
-                      {brandForm.appName || 'Chave Reserva'}
-                    </span>
                   </div>
                 </div>
 
@@ -927,17 +929,19 @@ export const ConfiguracoesModule = () => {
                       <img
                         src={brandForm.logoUrl}
                         alt="Logo Preview"
-                        className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
+                        className="max-h-9 max-w-[170px] w-auto object-contain shadow-xs"
                         onError={e => { e.target.style.display = 'none'; }}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
-                        <Key className="w-4 h-4 text-white" />
-                      </div>
+                      <>
+                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                          <Key className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-sm font-bold text-white tracking-tight truncate">
+                          Chave Reserva
+                        </span>
+                      </>
                     )}
-                    <span className="text-sm font-bold text-white tracking-tight truncate">
-                      {brandForm.appName || 'Chave Reserva'}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -954,22 +958,22 @@ export const ConfiguracoesModule = () => {
                     <img
                       src={brandForm.logoUrl}
                       alt="Logo Login"
-                      className="w-12 h-12 rounded-xl object-contain mx-auto shadow-sm"
+                      className="max-h-14 max-w-[190px] w-auto object-contain mx-auto shadow-sm"
                       onError={e => { e.target.style.display = 'none'; }}
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-sm">
-                      <Key className="w-5 h-5 text-white" />
-                    </div>
+                    <>
+                      <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-sm">
+                        <Key className="w-5 h-5 text-white" />
+                      </div>
+                      <h5 className="text-sm font-bold text-gray-900 dark:text-white">
+                        Chave Reserva
+                      </h5>
+                    </>
                   )}
-                  <div>
-                    <h5 className="text-sm font-bold text-gray-900 dark:text-white">
-                      {brandForm.appName || 'Chave Reserva'}
-                    </h5>
-                    <p className="text-[10px] text-gray-400">
-                      Gestão Financeira, CRM & Projeção Estratégica
-                    </p>
-                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    Gestão Financeira, CRM & Projeção Estratégica
+                  </p>
                 </div>
               </div>
 
