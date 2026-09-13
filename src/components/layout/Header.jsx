@@ -32,7 +32,6 @@ const TAB_TITLES = {
 export const Header = () => {
   const {
     user, logout, activeTab, setActiveTab, theme, toggleTheme,
-    isSyncing, lastSyncedAt, pushLocalStateToSupabase,
     notificacoes, markNotificacaoAsRead, markAllNotificacoesAsRead, deleteNotificacao, isAdmin
   } = useApp();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -80,15 +79,6 @@ export const Header = () => {
 
         {/* Right Section (Canto Superior Direito) */}
         <div className="flex items-center gap-3">
-
-          {/* Auto-Sync Cloud Status Indicator */}
-          <div
-            title={lastSyncedAt ? `Sincronização automática ativa (Última gravação: ${lastSyncedAt.toLocaleTimeString('pt-BR')})` : 'Sincronização automática em tempo real ativa'}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 select-none"
-          >
-            <span className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'}`}></span>
-            <span className="hidden sm:inline">{isSyncing ? 'Salvando...' : 'Nuvem Conectada'}</span>
-          </div>
 
           {/* Theme Toggle */}
           <button
