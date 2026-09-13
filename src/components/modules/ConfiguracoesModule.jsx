@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Settings, CreditCard, Layers, Package, Home, Percent, Plus, Trash2, ClipboardList, Search
+  Settings, CreditCard, Layers, Package, Home, Percent, Plus, Trash2, ClipboardList, Search,
+  Image, Upload, Globe, Check, AlertCircle, RefreshCcw, Palette, Key, ShieldCheck, Sparkles
 } from 'lucide-react';
 
 /* ─── Reusable Input Components ─── */
@@ -93,10 +94,86 @@ export const ConfiguracoesModule = () => {
     updatePlanoCell, addPlano, removePlano,
     updatePacoteCell, addPacote, removePacote,
     updateAluguelCell, addAluguel, removeAluguel,
-    auditLog
+    auditLog, addAuditLog,
+    customBrand, updateCustomBrand, isAdmin
   } = useApp();
 
   const [activeConfigTab, setActiveConfigTab] = useState('comissoes');
+
+  // Brand Identity Form State
+  const [brandForm, setBrandForm] = useState({
+    logoUrl: customBrand?.logoUrl || '',
+    faviconUrl: customBrand?.faviconUrl || '',
+    appName: customBrand?.appName || 'Chave Reserva'
+  });
+  const [isSavedNotice, setIsSavedNotice] = useState(false);
+  const logoInputRef = useRef(null);
+  const faviconInputRef = useRef(null);
+
+  useEffect(() => {
+    setBrandForm({
+      logoUrl: customBrand?.logoUrl || '',
+      faviconUrl: customBrand?.faviconUrl || '',
+      appName: customBrand?.appName || 'Chave Reserva'
+    });
+  }, [customBrand]);
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      alert('A imagem do logo deve ter no máximo 3MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      setBrandForm(prev => ({ ...prev, logoUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFaviconUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1.5 * 1024 * 1024) {
+      alert('O favicon deve ter no máximo 1.5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      setBrandForm(prev => ({ ...prev, faviconUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveBrand = (e) => {
+    e?.preventDefault();
+    if (!isAdmin) {
+      alert('Apenas administradores podem alterar a identidade visual.');
+      return;
+    }
+    updateCustomBrand(brandForm);
+    if (addAuditLog) {
+      addAuditLog('Identidade Visual', `Identidade visual atualizada (Nome: "${brandForm.appName}", Logo: ${brandForm.logoUrl ? 'Personalizado' : 'Padrão'}, Favicon: ${brandForm.faviconUrl ? 'Personalizado' : 'Padrão'}).`);
+    }
+    setIsSavedNotice(true);
+    setTimeout(() => setIsSavedNotice(false), 3500);
+  };
+
+  const handleResetBrand = () => {
+    if (window.confirm('Deseja restaurar o logo e favicon padrões do sistema?')) {
+      const defaultBrand = { logoUrl: '', faviconUrl: '', appName: 'Chave Reserva' };
+      setBrandForm(defaultBrand);
+      updateCustomBrand(defaultBrand);
+      if (addAuditLog) {
+        addAuditLog('Identidade Visual', 'Identidade visual restaurada para os padrões de fábrica.');
+      }
+      setIsSavedNotice(true);
+      setTimeout(() => setIsSavedNotice(false), 3000);
+    }
+  };
 
   const configTabs = [
     { id: 'comissoes', label: 'Comissões', icon: Percent },
@@ -104,6 +181,7 @@ export const ConfiguracoesModule = () => {
     { id: 'planos', label: 'Planos', icon: Layers },
     { id: 'pacotes', label: 'Pacotes Adicionais', icon: Package },
     { id: 'aluguel', label: 'Aluguel', icon: Home },
+    ...(isAdmin ? [{ id: 'identidade', label: 'Identidade Visual & Logo', icon: Palette }] : []),
     { id: 'auditoria', label: 'Auditoria', icon: ClipboardList },
   ];
 
@@ -529,6 +607,374 @@ export const ConfiguracoesModule = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== IDENTIDADE VISUAL & LOGO (ADMIN ONLY) ===== */}
+      {activeConfigTab === 'identidade' && isAdmin && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="card p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-l-4 border-l-amber-500">
+            <div>
+              <div className="flex items-center gap-2">
+                <Palette className="w-5 h-5 text-amber-500" />
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Identidade Visual da Empresa</h3>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                  <ShieldCheck className="w-3 h-3" /> Exclusivo Administrador
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Personalize o logotipo do canto superior esquerdo, o ícone da aba do navegador (favicon) e o nome exibido em todo o sistema.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleResetBrand}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors"
+                title="Restaurar logo e favicon originais"
+              >
+                <RefreshCcw className="w-3.5 h-3.5" />
+                <span>Restaurar Padrão</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBrand}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Salvar Alterações</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Success Banner */}
+          {isSavedNotice && (
+            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between shadow-sm animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-semibold">Identidade visual atualizada com sucesso em todo o sistema!</span>
+              </div>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Favicon e logo sincronizados</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Left Column: Controls and Uploaders (7 cols) */}
+            <div className="lg:col-span-7 space-y-5">
+
+              {/* 1. Nome do Sistema */}
+              <div className="card p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-white">Nome da Empresa / Sistema</h4>
+                    <p className="text-[11px] text-gray-400">Exibido na barra lateral, tela de login e no título da aba do navegador.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    value={brandForm.appName}
+                    onChange={e => setBrandForm({ ...brandForm, appName: e.target.value })}
+                    placeholder="Ex: Chave Reserva"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Upload do Logo do Sistema */}
+              <div className="card p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                      2
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-white">Logo do Sistema (Canto Superior Esquerdo)</h4>
+                      <p className="text-[11px] text-gray-400">Substitui o ícone padrão de chave na barra lateral e na tela de login.</p>
+                    </div>
+                  </div>
+
+                  {brandForm.logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setBrandForm({ ...brandForm, logoUrl: '' })}
+                      className="text-[11px] text-red-600 dark:text-red-400 hover:underline flex items-center gap-1 font-medium"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Remover Logo</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Hidden File Input */}
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+
+                {/* Drag & Drop / Click Upload Box */}
+                <div
+                  onClick={() => logoInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                    Clique para fazer upload do Logo
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Formatos suportados: PNG, SVG, JPG, WebP (Recomendado: imagem quadrada ou com fundo transparente, máx 3MB)
+                  </p>
+                </div>
+
+                {/* Alternative: Image URL */}
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-gray-400 mb-1">
+                    Ou cole a URL direta da imagem:
+                  </label>
+                  <div className="relative">
+                    <Globe className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={brandForm.logoUrl}
+                      onChange={e => setBrandForm({ ...brandForm, logoUrl: e.target.value })}
+                      placeholder="https://suaempresa.com/logo.png"
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Upload do Favicon da Aba do Navegador */}
+              <div className="card p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-white">Favicon da Aba do Navegador</h4>
+                      <p className="text-[11px] text-gray-400">Ícone exibido na aba do navegador web ao lado do título da página.</p>
+                    </div>
+                  </div>
+
+                  {brandForm.faviconUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setBrandForm({ ...brandForm, faviconUrl: '' })}
+                      className="text-[11px] text-red-600 dark:text-red-400 hover:underline flex items-center gap-1 font-medium"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Remover Favicon</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Hidden File Input */}
+                <input
+                  ref={faviconInputRef}
+                  type="file"
+                  accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
+                  onChange={handleFaviconUpload}
+                  className="hidden"
+                />
+
+                {/* Drag & Drop / Click Upload Box */}
+                <div
+                  onClick={() => faviconInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 rounded-xl p-5 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
+                >
+                  <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                    Clique para fazer upload do Favicon
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Formatos: .ICO, .PNG, .SVG (Recomendado: 32x32px ou 64x64px)
+                  </p>
+                </div>
+
+                {/* Alternative: Favicon URL */}
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-gray-400 mb-1">
+                    Ou cole a URL direta do favicon:
+                  </label>
+                  <div className="relative">
+                    <Globe className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={brandForm.faviconUrl}
+                      onChange={e => setBrandForm({ ...brandForm, faviconUrl: e.target.value })}
+                      placeholder="https://suaempresa.com/favicon.ico"
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de Salvar no Rodapé */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveBrand}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Salvar & Aplicar Identidade Visual</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Right Column: Live Previews (5 cols) */}
+            <div className="lg:col-span-5 space-y-5">
+              
+              {/* Preview 1: Browser Tab Mockup */}
+              <div className="card p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-amber-500" />
+                    Prévia: Aba do Navegador
+                  </span>
+                  <span className="text-[10px] text-gray-400">Ao vivo</span>
+                </div>
+
+                {/* Chrome Window Mockup */}
+                <div className="rounded-xl border border-gray-300 dark:border-gray-800 bg-gray-200 dark:bg-gray-900 overflow-hidden shadow-sm">
+                  {/* Browser top bar */}
+                  <div className="px-3 pt-2 pb-0 flex items-center gap-2 bg-gray-200 dark:bg-gray-900">
+                    <div className="flex gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
+                    </div>
+
+                    {/* Active tab */}
+                    <div className="flex items-center gap-2 bg-white dark:bg-gray-950 px-3 py-1.5 rounded-t-lg text-xs font-medium text-gray-900 dark:text-white max-w-[220px] shadow-xs border-t border-x border-gray-200 dark:border-gray-800">
+                      {brandForm.faviconUrl ? (
+                        <img
+                          src={brandForm.faviconUrl}
+                          alt="Favicon"
+                          className="w-3.5 h-3.5 object-contain rounded shrink-0"
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <Key className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      )}
+                      <span className="truncate text-[11px] font-semibold">
+                        {brandForm.appName || 'Chave Reserva'} | Gestão
+                      </span>
+                      <span className="text-gray-400 hover:text-gray-600 text-[11px] ml-auto leading-none">×</span>
+                    </div>
+                  </div>
+
+                  {/* Browser URL Bar */}
+                  <div className="bg-white dark:bg-gray-950 px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400 font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-900 text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">🔒 https</span>
+                    <span className="truncate">app.{brandForm.appName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'chavereserva'}.com.br</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview 2: Sidebar Header Mockup (Light & Dark) */}
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <Image className="w-3.5 h-3.5 text-amber-500" />
+                    Prévia: Menu Superior Esquerdo
+                  </span>
+                </div>
+
+                {/* Light Mode Mock */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase font-semibold text-gray-400">Modo Claro:</p>
+                  <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex items-center gap-2.5 shadow-xs">
+                    {brandForm.logoUrl ? (
+                      <img
+                        src={brandForm.logoUrl}
+                        alt="Logo Preview"
+                        className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                        <Key className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-gray-900 tracking-tight truncate">
+                      {brandForm.appName || 'Chave Reserva'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dark Mode Mock */}
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-[10px] uppercase font-semibold text-gray-400">Modo Escuro:</p>
+                  <div className="p-2.5 rounded-xl bg-gray-950 border border-gray-800 flex items-center gap-2.5 shadow-xs">
+                    {brandForm.logoUrl ? (
+                      <img
+                        src={brandForm.logoUrl}
+                        alt="Logo Preview"
+                        className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                        <Key className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-white tracking-tight truncate">
+                      {brandForm.appName || 'Chave Reserva'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview 3: Login Header Mockup */}
+              <div className="card p-4 space-y-3">
+                <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-amber-500" />
+                  Prévia: Tela de Login
+                </span>
+                
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 text-center space-y-2">
+                  {brandForm.logoUrl ? (
+                    <img
+                      src={brandForm.logoUrl}
+                      alt="Logo Login"
+                      className="w-12 h-12 rounded-xl object-contain mx-auto shadow-sm"
+                      onError={e => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-sm">
+                      <Key className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                  <div>
+                    <h5 className="text-sm font-bold text-gray-900 dark:text-white">
+                      {brandForm.appName || 'Chave Reserva'}
+                    </h5>
+                    <p className="text-[10px] text-gray-400">
+                      Gestão Financeira, CRM & Projeção Estratégica
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       )}

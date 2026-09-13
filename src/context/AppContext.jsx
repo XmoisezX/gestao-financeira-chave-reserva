@@ -194,6 +194,40 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialResumoExecutivo;
   });
 
+  // Custom Brand Identity (Logo & Favicon)
+  const [customBrand, setCustomBrand] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.BRAND);
+      return saved ? JSON.parse(saved) : { logoUrl: '', faviconUrl: '', appName: 'Chave Reserva' };
+    } catch {
+      return { logoUrl: '', faviconUrl: '', appName: 'Chave Reserva' };
+    }
+  });
+
+  // Dynamically update browser tab Favicon and Title
+  useEffect(() => {
+    if (customBrand?.faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = customBrand.faviconUrl;
+    }
+    if (customBrand?.appName) {
+      document.title = `${customBrand.appName} | Gestão Financeira`;
+    }
+  }, [customBrand]);
+
+  const updateCustomBrand = (brandData) => {
+    setCustomBrand(prev => {
+      const updated = { ...prev, ...brandData };
+      localStorage.setItem(STORAGE_KEYS.BRAND, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const isSupabaseLoaded = useRef(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
@@ -621,6 +655,7 @@ export const AppProvider = ({ children }) => {
         { key: STORAGE_KEYS.FUNCIONARIOS, value: funcionarios },
         { key: STORAGE_KEYS.AUDIT_LOG, value: auditLog },
         { key: STORAGE_KEYS.NOTIFICACOES, value: notificacoes },
+        { key: STORAGE_KEYS.BRAND, value: customBrand },
       ];
 
       for (const item of itemsToSync) {
@@ -666,6 +701,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.FUNCIONARIOS) setFuncionarios(item.value);
           if (item.key === STORAGE_KEYS.AUDIT_LOG) setAuditLog(item.value);
           if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
+          if (item.key === STORAGE_KEYS.BRAND) setCustomBrand(item.value);
         });
         setLastSyncedAt(new Date());
       }
@@ -702,6 +738,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.FUNCIONARIOS && item.value) setFuncionarios(item.value);
           if (item.key === STORAGE_KEYS.AUDIT_LOG && item.value) setAuditLog(item.value);
           if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
+          if (item.key === STORAGE_KEYS.BRAND && item.value) setCustomBrand(item.value);
           localStorage.setItem(item.key, JSON.stringify(item.value));
           setLastSyncedAt(new Date());
         }
@@ -730,6 +767,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { syncData(STORAGE_KEYS.FUNCIONARIOS, funcionarios); }, [funcionarios]);
   useEffect(() => { syncData(STORAGE_KEYS.AUDIT_LOG, auditLog); }, [auditLog]);
   useEffect(() => { syncData(STORAGE_KEYS.NOTIFICACOES, notificacoes); }, [notificacoes]);
+  useEffect(() => { syncData(STORAGE_KEYS.BRAND, customBrand); }, [customBrand]);
 
   // Always enforce fresh engine calculation for projecaoMensal when premissas or plans change
   useEffect(() => {
@@ -1582,6 +1620,9 @@ export const AppProvider = ({ children }) => {
       markAllNotificacoesAsRead,
       deleteNotificacao,
       isAdmin,
+      // Brand Customization (Logo & Favicon)
+      customBrand,
+      updateCustomBrand,
       // Background Sync status & helpers
       isSyncing,
       lastSyncedAt,

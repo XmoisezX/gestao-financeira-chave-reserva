@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Key, Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 
 export const LoginView = () => {
-  const { login, theme, toggleTheme } = useApp();
+  const { login, theme, toggleTheme, customBrand } = useApp();
 
   const [email, setEmail] = useState('moiseztorres100@gmail.com');
   const [password, setPassword] = useState('Geral123@');
@@ -45,11 +45,20 @@ export const LoginView = () => {
       
       {/* Top Brand Logo */}
       <div className="mb-8 text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-md">
-          <Key className="w-6 h-6 text-white" />
-        </div>
+        {customBrand?.logoUrl ? (
+          <img
+            src={customBrand.logoUrl}
+            alt="Logo"
+            className="w-14 h-14 rounded-2xl object-contain mx-auto shadow-md"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-md">
+            <Key className="w-6 h-6 text-white" />
+          </div>
+        )}
         <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-          Chave Reserva
+          {customBrand?.appName || 'Chave Reserva'}
         </h1>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           Gestão Financeira, CRM & Projeção Estratégica

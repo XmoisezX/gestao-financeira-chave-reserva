@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin } = useApp();
+  const { activeTab, setActiveTab, clientes, clientesAtivos, mrrTotalReal, user, isAdmin, customBrand } = useApp();
   const [collapsed, setCollapsed] = useState(false);
 
   // Calculate pending commissions
@@ -57,12 +57,21 @@ export const Sidebar = () => {
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-gray-200 dark:border-gray-800 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-sm">
-            <Key className="w-4 h-4 text-white" />
-          </div>
+          {customBrand?.logoUrl ? (
+            <img
+              src={customBrand.logoUrl}
+              alt="Logo"
+              className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-sm">
+              <Key className="w-4 h-4 text-white" />
+            </div>
+          )}
           {!collapsed && (
             <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight truncate">
-              Chave Reserva
+              {customBrand?.appName || 'Chave Reserva'}
             </span>
           )}
         </div>
