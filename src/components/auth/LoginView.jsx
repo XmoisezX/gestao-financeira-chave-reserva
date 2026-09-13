@@ -5,8 +5,8 @@ import { Key, Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } fr
 export const LoginView = () => {
   const { login, theme, toggleTheme, customBrand } = useApp();
 
-  const [email, setEmail] = useState('moiseztorres100@gmail.com');
-  const [password, setPassword] = useState('Geral123@');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,18 +23,6 @@ export const LoginView = () => {
       }
     } catch (err) {
       setError('Erro ao realizar autenticação. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickAdminLogin = async () => {
-    setEmail('moiseztorres100@gmail.com');
-    setPassword('Geral123@');
-    setError('');
-    setIsLoading(true);
-    try {
-      await login('moiseztorres100@gmail.com', 'Geral123@');
     } finally {
       setIsLoading(false);
     }
@@ -137,16 +125,6 @@ export const LoginView = () => {
             {!isLoading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
-
-        <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-          <button
-            onClick={handleQuickAdminLogin}
-            className="w-full py-2 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors border border-amber-200 dark:border-amber-800/60 flex items-center justify-center gap-1.5"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Entrar como Administrador (Moisés)</span>
-          </button>
-        </div>
       </div>
 
       {/* Footer Info */}
