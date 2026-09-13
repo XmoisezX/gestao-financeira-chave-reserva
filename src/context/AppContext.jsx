@@ -1086,7 +1086,7 @@ export const AppProvider = ({ children }) => {
     const clientWithId = {
       ...newCliente,
       id: `cli-${Date.now()}`,
-      status: 'Ativo',
+      status: newCliente.status || 'Pendente',
       dataEntrada: newCliente.dataEntrada || new Date().toISOString().split('T')[0]
     };
     setClientes(prev => [clientWithId, ...prev]);
