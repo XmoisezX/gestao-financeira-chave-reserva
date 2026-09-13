@@ -233,9 +233,9 @@ export const AppProvider = ({ children }) => {
   const [roletaConfig, setRoletaConfig] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ROLETA);
-      return saved ? JSON.parse(saved) : { modo: 'balanceado', participantesInativos: [] };
+      return saved ? JSON.parse(saved) : { modo: 'sequencial', participantesInativos: [], ultimoIndex: -1, ultimoAtribuido: '' };
     } catch {
-      return { modo: 'balanceado', participantesInativos: [] };
+      return { modo: 'sequencial', participantesInativos: [], ultimoIndex: -1, ultimoAtribuido: '' };
     }
   });
 
@@ -289,18 +289,33 @@ export const AppProvider = ({ children }) => {
       return 'Equipe Suporte';
     }
 
-    if (roletaConfig?.modo === 'aleatorio') {
+    const mode = roletaConfig?.modo || 'sequencial';
+
+    if (mode === 'aleatorio') {
       const randomIndex = Math.floor(Math.random() * activeStaff.length);
       return activeStaff[randomIndex].nome;
     }
 
-    // Default 'balanceado': assign to the one with lowest active client count
-    const staffWithCounts = activeStaff.map(agent => ({
-      name: agent.nome,
-      count: (clientes || []).filter(c => c.suporteResponsavel === agent.nome && c.status === 'Ativo').length
-    }));
-    staffWithCounts.sort((a, b) => a.count - b.count);
-    return staffWithCounts[0].name;
+    if (mode === 'balanceado') {
+      const staffWithCounts = activeStaff.map(agent => ({
+        name: agent.nome,
+        count: (clientes || []).filter(c => c.suporteResponsavel === agent.nome && c.status === 'Ativo').length
+      }));
+      staffWithCounts.sort((a, b) => a.count - b.count);
+      return staffWithCounts[0].name;
+    }
+
+    // Default 'sequencial': Round-Robin estrito (1 para cada um, sem repetir)
+    let lastIdx = Number(roletaConfig?.ultimoIndex ?? -1);
+    const nextIdx = (lastIdx + 1) % activeStaff.length;
+    const chosenAgent = activeStaff[nextIdx];
+
+    updateRoletaConfig({
+      ultimoIndex: nextIdx,
+      ultimoAtribuido: chosenAgent.nome
+    });
+
+    return chosenAgent.nome;
   };
 
   const addAuditLog = (action, details, userName) => {

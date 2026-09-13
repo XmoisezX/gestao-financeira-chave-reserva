@@ -168,29 +168,31 @@ export const SuporteModule = () => {
           </p>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-          <button
-            onClick={() => setActiveSubTab('clientes')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeSubTab === 'clientes'
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" /> Clientes Validados
-          </button>
-          <button
-            onClick={() => setActiveSubTab('roleta')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeSubTab === 'roleta'
-                ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm font-semibold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-teal-500" /> Configuração da Roleta
-          </button>
-        </div>
+        {/* View Switcher Tabs (Only Admin can access Roleta Configuration) */}
+        {isAdmin && (
+          <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+            <button
+              onClick={() => setActiveSubTab('clientes')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeSubTab === 'clientes'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" /> Clientes Validados
+            </button>
+            <button
+              onClick={() => setActiveSubTab('roleta')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeSubTab === 'roleta'
+                  ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-teal-500" /> Configuração da Roleta
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Metric Cards */}
@@ -226,9 +228,15 @@ export const SuporteModule = () => {
         <div className="card p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Modo da Roleta</p>
           <p className="text-sm font-bold text-teal-600 dark:text-teal-400 mt-2 truncate">
-            {roletaConfig?.modo === 'aleatorio' ? 'Aleatório Ponderado' : 'Distribuição Equilibrada'}
+            {roletaConfig?.modo === 'sequencial'
+              ? 'Fila 1 para Cada'
+              : roletaConfig?.modo === 'aleatorio'
+              ? 'Aleatório Ponderado'
+              : 'Distribuição Equilibrada'}
           </p>
-          <span className="text-[10px] text-gray-400">Menor sobrecarga</span>
+          <span className="text-[10px] text-gray-400">
+            {roletaConfig?.modo === 'sequencial' ? 'Sem repetições consecutivas' : 'Menor sobrecarga'}
+          </span>
         </div>
       </div>
 
@@ -457,34 +465,66 @@ export const SuporteModule = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Opção 1: Fila Sequencial 1 para cada sem repetir */}
               <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                roletaConfig?.modo !== 'aleatorio'
-                  ? 'border-teal-500 bg-teal-50/30 dark:bg-teal-950/20 ring-1 ring-teal-500/50'
+                roletaConfig?.modo === 'sequencial' || !roletaConfig?.modo
+                  ? 'border-teal-500 bg-teal-50/40 dark:bg-teal-950/30 ring-1 ring-teal-500/50 shadow-sm'
+                  : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700'
+              }`}>
+                <input
+                  type="radio"
+                  name="roletaModo"
+                  value="sequencial"
+                  checked={roletaConfig?.modo === 'sequencial' || !roletaConfig?.modo}
+                  disabled={!isAdmin}
+                  onChange={() => isAdmin && updateRoletaConfig({ modo: 'sequencial' })}
+                  className="mt-0.5 text-teal-600 focus:ring-teal-500"
+                />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">
+                      Fila Sequencial (1 para cada)
+                    </p>
+                    <span className="px-1.5 py-0.2 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[9px] font-bold">
+                      Ativo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                    Distribui <strong>1 cliente por vez para cada usuário</strong> em ordem circular contínua, sem repetir ninguém até que todos da fila tenham recebido.
+                  </p>
+                </div>
+              </label>
+
+              {/* Opção 2: Distribuição Equilibrada por Carga */}
+              <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                roletaConfig?.modo === 'balanceado'
+                  ? 'border-teal-500 bg-teal-50/40 dark:bg-teal-950/30 ring-1 ring-teal-500/50 shadow-sm'
                   : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700'
               }`}>
                 <input
                   type="radio"
                   name="roletaModo"
                   value="balanceado"
-                  checked={roletaConfig?.modo !== 'aleatorio'}
+                  checked={roletaConfig?.modo === 'balanceado'}
                   disabled={!isAdmin}
                   onChange={() => isAdmin && updateRoletaConfig({ modo: 'balanceado' })}
                   className="mt-0.5 text-teal-600 focus:ring-teal-500"
                 />
                 <div>
                   <p className="text-xs font-bold text-gray-900 dark:text-white">
-                    Distribuição Equilibrada (Recomendado)
+                    Distribuição Equilibrada
                   </p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                    O próximo cliente é automaticamente entregue ao membro com a <strong>menor quantidade de clientes ativos</strong>, garantindo equilíbrio contínuo da carga de trabalho.
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                    Entrega o próximo cliente automaticamente ao membro com a <strong>menor quantidade total de clientes ativos</strong> no momento.
                   </p>
                 </div>
               </label>
 
+              {/* Opção 3: Roleta Aleatória */}
               <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
                 roletaConfig?.modo === 'aleatorio'
-                  ? 'border-teal-500 bg-teal-50/30 dark:bg-teal-950/20 ring-1 ring-teal-500/50'
+                  ? 'border-teal-500 bg-teal-50/40 dark:bg-teal-950/30 ring-1 ring-teal-500/50 shadow-sm'
                   : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700'
               }`}>
                 <input
@@ -500,8 +540,8 @@ export const SuporteModule = () => {
                   <p className="text-xs font-bold text-gray-900 dark:text-white">
                     Roleta Aleatória Pura
                   </p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                    Sorteia aleatoriamente entre todos os membros ativos na fila da roleta a cada nova validação de cliente.
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                    Sorteia aleatoriamente entre todos os membros ativos da fila da roleta a cada nova validação.
                   </p>
                 </div>
               </label>
