@@ -78,7 +78,8 @@ export const FuncionariosModule = () => {
         custoMensal: func.custoMensal || 0,
         dataInicio: func.dataInicio || '2026-09-01',
         dataFim: func.dataFim || '',
-        status: func.status || 'Ativo'
+        status: func.status || 'Ativo',
+        photoUrl: func.photoUrl || ''
       });
     } else {
       setFormData({
@@ -92,7 +93,8 @@ export const FuncionariosModule = () => {
         custoMensal: 0,
         dataInicio: new Date().toISOString().split('T')[0],
         dataFim: '',
-        status: 'Ativo'
+        status: 'Ativo',
+        photoUrl: ''
       });
     }
     setIsModalOpen(true);
@@ -108,23 +110,20 @@ export const FuncionariosModule = () => {
         await saveFuncionario(formData);
       } else {
         if (isEditing) {
-          setFuncionarios(prev => prev.map(f => f.id === formData.id ? formData : f));
+          setFuncionarios(prev => (prev || []).map(f => f.id === formData.id ? { ...f, ...formData } : f));
         } else {
           setFuncionarios(prev => [...(prev || []), formData]);
         }
       }
 
-      if (addAuditLog) {
-        const actionName = isEditing ? 'Edição de Usuário' : 'Cadastro de Usuário';
-        const vigenciaStr = formData.dataFim 
-          ? `Período: ${formData.dataInicio} a ${formData.dataFim}`
-          : `Início: ${formData.dataInicio} (Tempo Indeterminado)`;
-        addAuditLog(actionName, `Usuário "${formData.nome}" (${formData.cargo}) salvo com remuneração de R$${Number(formData.custoMensal).toFixed(2)}/mês. ${vigenciaStr}.`);
-      }
+      addAuditLog(
+        isEditing ? 'Atualização de Usuário' : 'Novo Usuário',
+        `Usuário "${formData.nome}" (${formData.cargo}) ${isEditing ? 'atualizado' : 'cadastrado'} por ${user?.name || 'Admin'}.`
+      );
 
       setIsModalOpen(false);
     } catch (err) {
-      alert('Erro ao salvar usuário: ' + (err.message || err));
+      console.error('Erro ao salvar usuário:', err);
     } finally {
       setIsSaving(false);
     }
@@ -152,51 +151,59 @@ export const FuncionariosModule = () => {
   };
 
   return (
-    <div className="space-y-6 animate-cr-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      {/* Top Banner */}
+      <div className="cr-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            Usuários do Sistema
-          </h1>
-          <p className="text-[13px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-            Cadastre os usuários com acesso ao sistema, seus cargos, credenciais e remuneração mensal.
+          <h2 className="text-xl font-bold flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}>
+            <Users className="w-5 h-5 text-indigo-500" />
+            Gestão de Usuários & Acessos
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>
+            Cadastre novos membros da equipe, defina cargos, senhas de login e dados financeiros (Pix/CPF).
           </p>
         </div>
+
         <button
           onClick={() => handleOpenModal()}
-          className="cr-btn cr-btn-primary"
+          className="cr-btn cr-btn-primary flex items-center gap-2 shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Novo Usuário</span>
+          Novo Usuário
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="cr-kpi">
-          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Total de Usuários</p>
-          <div className="flex items-baseline justify-between mt-1">
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{(funcionarios || []).length}</p>
-            <span className="cr-badge cr-badge-success">
-              {(funcionarios || []).filter(f => f.status === 'Ativo').length} ativos
-            </span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="cr-card p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total de Usuários</span>
+            <Users className="w-4 h-4 text-indigo-500" />
           </div>
+          <p className="text-2xl font-bold mt-2 text-gray-900 dark:text-white">{(funcionarios || []).length}</p>
+          <p className="text-xs text-gray-400 mt-1">{(funcionarios || []).filter(f => f.status === 'Ativo').length} ativos na plataforma</p>
         </div>
-        <div className="cr-kpi">
-          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Time de Vendas & Suporte</p>
-          <div className="flex items-baseline justify-between mt-1">
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              {(funcionarios || []).filter(f => ['Vendedor', 'SDR', 'Suporte', 'Apoio Técnico'].includes(f.cargo)).length}
-            </p>
-            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Comissionados</span>
+
+        <div className="cr-card p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Folha Fixa Mensal</span>
+            <DollarSign className="w-4 h-4 text-emerald-500" />
           </div>
-        </div>
-        <div className="cr-kpi">
-          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Custo Fixo Mensal Atual</p>
-          <p className="text-2xl font-bold mt-1" style={{ color: 'var(--brand-600)' }}>
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCusto)}
+          <p className="text-2xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">
+            R$ {totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
+          <p className="text-xs text-gray-400 mt-1">Soma de salários e pró-labores</p>
+        </div>
+
+        <div className="cr-card p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Perfis & Segurança</span>
+            <Shield className="w-4 h-4 text-purple-500" />
+          </div>
+          <p className="text-2xl font-bold mt-2 text-purple-600 dark:text-purple-400">
+            {(funcionarios || []).filter(f => (f.cargo || '').toLowerCase().includes('administrador')).length} Admins
+          </p>
+          <p className="text-xs text-gray-400 mt-1">Com acesso total aos módulos do sistema</p>
         </div>
       </div>
 
@@ -240,9 +247,18 @@ export const FuncionariosModule = () => {
                   <tr key={func.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ background: 'var(--brand-100)', color: 'var(--brand-700)' }}>
-                          {(func.nome || 'U').substring(0, 2).toUpperCase()}
-                        </div>
+                        {func.photoUrl ? (
+                          <img
+                            src={func.photoUrl}
+                            alt={func.nome}
+                            className="w-7 h-7 rounded-full object-cover shrink-0 border border-brand-200 dark:border-brand-800"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ background: 'var(--brand-100)', color: 'var(--brand-700)' }}>
+                            {(func.nome || 'U').substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
                         <div>
                           <p className="font-semibold text-gray-900 dark:text-white">{func.nome}</p>
                           <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">

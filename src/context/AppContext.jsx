@@ -1600,7 +1600,13 @@ export const AppProvider = ({ children }) => {
       const exists = (prev || []).find(f => f.id === userData.id || (f.email && f.email.toLowerCase() === userData.email?.toLowerCase()));
       let updated;
       if (exists) {
-        updated = prev.map(f => (f.id === userData.id || (f.email && f.email.toLowerCase() === userData.email?.toLowerCase())) ? { ...f, ...userData } : f);
+        updated = prev.map(f => {
+          if (f.id === userData.id || (f.email && f.email.toLowerCase() === userData.email?.toLowerCase())) {
+            const preservedPhoto = userData.photoUrl !== undefined ? userData.photoUrl : f.photoUrl;
+            return { ...f, ...userData, photoUrl: preservedPhoto };
+          }
+          return f;
+        });
       } else {
         updated = [...(prev || []), userData];
       }
@@ -1614,7 +1620,8 @@ export const AppProvider = ({ children }) => {
         name: userData.nome || user.name,
         role: userData.cargo || user.role,
         cpf: userData.cpf || user.cpf,
-        pix: userData.pix || user.pix
+        pix: userData.pix || user.pix,
+        photoUrl: userData.photoUrl !== undefined ? userData.photoUrl : user.photoUrl
       };
       setUser(updatedLoggedUser);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedLoggedUser));

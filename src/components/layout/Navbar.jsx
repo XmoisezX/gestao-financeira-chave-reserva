@@ -31,6 +31,20 @@ export const Sidebar = () => {
     return vendPendente || supPendente;
   }).length;
 
+  // Seller-specific vs Admin stats for the sidebar bottom-left KPIs
+  const displayedClientesAtivos = (clientesAtivos || []).filter(c => {
+    if (isAdmin) return true;
+    const seller = (c.vendedorResponsavel || '').toLowerCase().trim();
+    const uName = (user?.name || '').toLowerCase().trim();
+    const uEmail = (user?.email || '').toLowerCase().trim();
+    return (uName && seller === uName) || (uEmail && seller === uEmail);
+  });
+
+  const sidebarClientesCount = displayedClientesAtivos.length;
+  const sidebarMrrTotal = isAdmin
+    ? mrrTotalReal
+    : displayedClientesAtivos.reduce((acc, c) => acc + Number(c.mrr || 0), 0);
+
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'metas', label: 'Metas', icon: Target, adminOnly: true },
@@ -160,13 +174,17 @@ export const Sidebar = () => {
             }}
           >
             <div className="flex justify-between items-center text-xs">
-              <span style={{ color: 'var(--sidebar-text)' }}>Clientes Ativos</span>
-              <span className="font-semibold text-white">{clientesAtivos.length}</span>
+              <span style={{ color: 'var(--sidebar-text)' }}>
+                {isAdmin ? 'Clientes Ativos' : 'Meus Clientes'}
+              </span>
+              <span className="font-semibold text-white">{sidebarClientesCount}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span style={{ color: 'var(--sidebar-text)' }}>MRR</span>
+              <span style={{ color: 'var(--sidebar-text)' }}>
+                {isAdmin ? 'MRR Total' : 'Meu MRR'}
+              </span>
               <span className="font-semibold text-white">
-                R$ {mrrTotalReal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                R$ {sidebarMrrTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
               </span>
             </div>
           </div>

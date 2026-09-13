@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { User, Lock, Camera, ShieldCheck, Check, X, AlertCircle, Upload, Trash2 } from 'lucide-react';
+import { User, Lock, Camera, ShieldCheck, Check, X, AlertCircle, Upload, Trash2, Loader2 } from 'lucide-react';
+import { compressAndResizeImage } from '../../utils/imageUtils';
 
 export const ConfiguracoesModal = ({ isOpen, onClose }) => {
   const { user, updateUser } = useApp();
@@ -8,23 +9,28 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
   const [name, setName] = useState(user?.name || 'Moisés Torres');
   const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || '');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   if (!isOpen || !user) return null;
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate image size (e.g. max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem selecionada é muito grande. Escolha uma foto de até 5MB.');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('A imagem selecionada é muito grande. Escolha uma foto de até 10MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoUrl(reader.result); // Base64 data URL
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsProcessing(true);
+        const compressed = await compressAndResizeImage(file, 256, 256, 0.85);
+        setPhotoUrl(compressed);
+      } catch (err) {
+        console.error('Erro ao comprimir imagem:', err);
+        alert('Não foi possível processar a foto. Tente outra imagem.');
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -35,19 +41,26 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    updateUser({
-      name,
-      photoUrl,
-      role: user.role,
-      avatar: photoUrl ? null : (name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'MT')
-    });
-    setSavedSuccess(true);
-    setTimeout(() => {
-      setSavedSuccess(false);
-      onClose();
-    }, 800);
+    setIsProcessing(true);
+    try {
+      await updateUser({
+        name,
+        photoUrl,
+        role: user.role,
+        avatar: photoUrl ? null : (name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'MT')
+      });
+      setSavedSuccess(true);
+      setTimeout(() => {
+        setSavedSuccess(false);
+        onClose();
+      }, 700);
+    } catch (err) {
+      console.error('Erro ao salvar usuário:', err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -225,8 +238,15 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
             <button type="button" onClick={onClose} className="cr-btn cr-btn-secondary">
               Cancelar
             </button>
-            <button type="submit" className="cr-btn cr-btn-primary">
-              Salvar Alterações
+            <button type="submit" disabled={isProcessing} className="cr-btn cr-btn-primary flex items-center gap-2">
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Alterações'
+              )}
             </button>
           </div>
         </form>
