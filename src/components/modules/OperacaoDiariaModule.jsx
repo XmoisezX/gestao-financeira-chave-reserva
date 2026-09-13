@@ -12,7 +12,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
   const {
     lancamentos, addLancamentoDiario, deleteLancamentoDiario,
     projecaoMensal, clientes, planos, aluguel, pacotes, premissas, taxasPagamento,
-    funcionarios, addAuditLog
+    funcionarios, addAuditLog, configEquipeOperacao
   } = useApp();
 
   const [formData, setFormData] = useState({
@@ -204,17 +204,36 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       const custo1aInfluencer = 0; // Not available in lancamentos natively yet
       const custoRecorrenteInfluencer = 0; // Not available in lancamentos natively yet
 
-      // Team & Fixed Costs (loaded from dynamic premissas)
+      // Team & Fixed Costs (loaded dynamically from configEquipeOperacao with validity dates)
       const premissaObj = premissas && Array.isArray(premissas) ? premissas.reduce((acc, p) => { acc[p.premissa] = p.valor; return acc; }, {}) : {};
       
-      const proLaboreDev = Number(premissaObj.proLaboreDev || premissas?.proLaboreDev || 2000);
-      const proLaboreGestor = Number(premissaObj.proLaboreGestor || premissas?.proLaboreGestor || 2000);
-      const proLaboreMkt = Number(premissaObj.proLaboreMkt || premissas?.proLaboreMkt || 1000);
-      const proLaboreFin = Number(premissaObj.proLaboreFin || premissas?.proLaboreFin || 1000);
-      const suporteFixo = Number(premissaObj.suporteFixo || premissas?.suporteFixo || 0);
-      const apoioTecnico = Number(premissaObj.apoioTecnico || premissas?.apoioTecnico || 0);
-      const sdr = Number(premissaObj.sdr || premissas?.sdr || 0);
-      const marketingCriacao = Number(premissaObj.marketingCriacao || premissas?.marketingCriacao || 0);
+      const getCustoFuncaoNoMes = (itemId, start, end, fallbackVal = 0) => {
+        const item = (configEquipeOperacao || []).find(c => c.id === itemId);
+        if (!item) return fallbackVal;
+        if (item.status === 'Inativo') return 0;
+        const valor = item.valor !== undefined && item.valor !== null ? Number(item.valor) : fallbackVal;
+        if (!valor) return 0;
+        if (!start || !end) return valor;
+
+        if (item.dataInicio) {
+          const inicio = new Date(item.dataInicio + 'T00:00:00');
+          if (end < inicio) return 0;
+        }
+        if (item.dataFim) {
+          const fim = new Date(item.dataFim + 'T23:59:59');
+          if (start > fim) return 0;
+        }
+        return valor;
+      };
+
+      const proLaboreDev = getCustoFuncaoNoMes('proLaboreDev', monthStart, monthEnd, Number(premissaObj.proLaboreDev || premissas?.proLaboreDev || 2000));
+      const proLaboreGestor = getCustoFuncaoNoMes('proLaboreGestor', monthStart, monthEnd, Number(premissaObj.proLaboreGestor || premissas?.proLaboreGestor || 2000));
+      const proLaboreMkt = getCustoFuncaoNoMes('proLaboreMkt', monthStart, monthEnd, Number(premissaObj.proLaboreMkt || premissas?.proLaboreMkt || 1000));
+      const proLaboreFin = getCustoFuncaoNoMes('proLaboreFin', monthStart, monthEnd, Number(premissaObj.proLaboreFin || premissas?.proLaboreFin || 1000));
+      const suporteFixo = getCustoFuncaoNoMes('suporteFixo', monthStart, monthEnd, Number(premissaObj.suporteFixo || premissas?.suporteFixo || 0));
+      const apoioTecnico = getCustoFuncaoNoMes('apoioTecnico', monthStart, monthEnd, Number(premissaObj.apoioTecnico || premissas?.apoioTecnico || 0));
+      const sdr = getCustoFuncaoNoMes('sdr', monthStart, monthEnd, Number(premissaObj.sdr || premissas?.sdr || 0));
+      const marketingCriacao = getCustoFuncaoNoMes('marketingCriacao', monthStart, monthEnd, Number(premissaObj.marketingCriacao || premissas?.marketingCriacao || 0));
       const bonusMetas = Number(premissaObj.bonusMetas || premissas?.bonusMetas || 0);
 
       // Operational Overhead
@@ -290,7 +309,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
         hasDirectData
       };
     });
-  }, [projecaoMensal, lancamentos, clientes, premissas]);
+  }, [projecaoMensal, lancamentos, clientes, premissas, configEquipeOperacao]);
 
   const inputCls = "w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-gray-400";
 

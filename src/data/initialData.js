@@ -870,3 +870,79 @@ export const initialFuncionarios = [
   { id: 'func-2', nome: 'João Vendedor', cargo: 'Vendedor', custoMensal: 2000, dataInicio: '2026-09-01', dataFim: null, status: 'Ativo', cpf: '111.111.111-11', pix: '111.111.111-11', email: 'vendedor@chavereserva.com', senha: '123' },
   { id: 'func-3', nome: 'Maria Suporte', cargo: 'Suporte', custoMensal: 2500, dataInicio: '2026-09-01', dataFim: null, status: 'Ativo', cpf: '222.222.222-22', pix: '222.222.222-22', email: 'suporte@chavereserva.com', senha: '123' },
 ];
+
+export const initialConfigEquipeOperacao = [
+  {
+    id: 'proLaboreDev',
+    cargo: 'P-Lab Dev',
+    descricao: 'Desenvolvimento e Tecnologia',
+    valor: 2000,
+    dataInicio: '2026-09-01',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'proLaboreGestor',
+    cargo: 'P-Lab Gestor',
+    descricao: 'Gestão Geral e Comercial',
+    valor: 2000,
+    dataInicio: '2026-09-01',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'proLaboreMkt',
+    cargo: 'P-Lab Mkt',
+    descricao: 'Marketing e Growth',
+    valor: 1000,
+    dataInicio: '2026-09-01',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'proLaboreFin',
+    cargo: 'P-Lab Fin',
+    descricao: 'Administrativo e Financeiro',
+    valor: 1000,
+    dataInicio: '2026-09-01',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'suporteFixo',
+    cargo: 'Suporte Fixo',
+    descricao: 'Atendimento e Suporte ao Cliente',
+    valor: 0,
+    dataInicio: '',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'apoioTecnico',
+    cargo: 'Apoio Téc.',
+    descricao: 'Apoio Técnico e Implantação',
+    valor: 0,
+    dataInicio: '',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'sdr',
+    cargo: 'SDR',
+    descricao: 'Pré-vendas e Qualificação de Leads',
+    valor: 0,
+    dataInicio: '',
+    dataFim: '',
+    status: 'Ativo'
+  },
+  {
+    id: 'marketingCriacao',
+    cargo: 'Mkt Criação',
+    descricao: 'Design, Criativos e Conteúdo',
+    valor: 0,
+    dataInicio: '',
+    dataFim: '',
+    status: 'Ativo'
+  }
+];
+

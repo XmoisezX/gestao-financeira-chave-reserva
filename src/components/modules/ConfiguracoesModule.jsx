@@ -3,7 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { formatDateBR, formatDateTimeBR } from '../../utils/formatters';
 import {
   Settings, CreditCard, Layers, Package, Home, Percent, Plus, Trash2, ClipboardList, Search,
-  Image, Upload, Globe, Check, AlertCircle, RefreshCcw, Palette, Key, ShieldCheck, Sparkles
+  Image, Upload, Globe, Check, AlertCircle, RefreshCcw, Palette, Key, ShieldCheck, Sparkles,
+  Users, Calendar, Clock, DollarSign, Briefcase
 } from 'lucide-react';
 
 /* ─── Reusable Input Components ─── */
@@ -95,6 +96,7 @@ export const ConfiguracoesModule = () => {
     updatePlanoCell, addPlano, removePlano,
     updatePacoteCell, addPacote, removePacote,
     updateAluguelCell, addAluguel, removeAluguel,
+    configEquipeOperacao, updateConfigEquipeItem, saveConfigEquipeOperacao,
     auditLog, addAuditLog,
     customBrand, updateCustomBrand, isAdmin
   } = useApp();
@@ -176,8 +178,11 @@ export const ConfiguracoesModule = () => {
     }
   };
 
+  const [isEquipeSavedNotice, setIsEquipeSavedNotice] = useState(false);
+
   const configTabs = [
     { id: 'comissoes', label: 'Comissões', icon: Percent },
+    { id: 'equipeOperacao', label: 'Pró-Labore & Equipe', icon: Users },
     { id: 'taxas', label: 'Taxas de Pagamento', icon: CreditCard },
     { id: 'planos', label: 'Planos', icon: Layers },
     { id: 'pacotes', label: 'Pacotes Adicionais', icon: Package },
@@ -611,6 +616,254 @@ export const ConfiguracoesModule = () => {
           </div>
         </div>
       )}
+
+      {/* ===== PRÓ-LABORE & EQUIPE OPERACIONAL (OPERAÇÃO DIÁRIA) ===== */}
+      {activeConfigTab === 'equipeOperacao' && (() => {
+        const equipeList = configEquipeOperacao || [];
+        const hojeStr = new Date().toISOString().split('T')[0];
+
+        const isVigenteHoje = (dataInicio, dataFim, status) => {
+          if (status === 'Inativo') return { status: 'inativo', label: 'Inativo', badgeClass: 'cr-badge-neutral' };
+          if (dataInicio && hojeStr < dataInicio) {
+            return { status: 'futuro', label: `Inicia em ${formatDateBR ? formatDateBR(dataInicio) : dataInicio}`, badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' };
+          }
+          if (dataFim && hojeStr > dataFim) {
+            return { status: 'encerrado', label: `Encerrado em ${formatDateBR ? formatDateBR(dataFim) : dataFim}`, badgeClass: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' };
+          }
+          return { status: 'vigente', label: 'Vigente Agora', badgeClass: 'cr-badge-success' };
+        };
+
+        const totalCustoVigenteHoje = equipeList
+          .filter(it => it.status !== 'Inativo' && (!it.dataInicio || hojeStr >= it.dataInicio) && (!it.dataFim || hojeStr <= it.dataFim))
+          .reduce((acc, it) => acc + (Number(it.valor) || 0), 0);
+
+        const totalSocios = equipeList
+          .filter(it => it.id.startsWith('proLabore') && it.status !== 'Inativo' && (!it.dataInicio || hojeStr >= it.dataInicio) && (!it.dataFim || hojeStr <= it.dataFim))
+          .reduce((acc, it) => acc + (Number(it.valor) || 0), 0);
+
+        const totalOperacional = equipeList
+          .filter(it => !it.id.startsWith('proLabore') && it.status !== 'Inativo' && (!it.dataInicio || hojeStr >= it.dataInicio) && (!it.dataFim || hojeStr <= it.dataFim))
+          .reduce((acc, it) => acc + (Number(it.valor) || 0), 0);
+
+        const ativasCount = equipeList
+          .filter(it => it.status !== 'Inativo' && (!it.dataInicio || hojeStr >= it.dataInicio) && (!it.dataFim || hojeStr <= it.dataFim)).length;
+
+        const handleSaveEquipe = () => {
+          saveConfigEquipeOperacao(equipeList);
+          if (addAuditLog) {
+            addAuditLog('Configurações de Equipe', `Custos de pró-labore e equipe atualizados por ${isAdmin ? 'Admin' : 'Usuário'}. Total vigente: R$${totalCustoVigenteHoje.toFixed(2)}.`);
+          }
+          setIsEquipeSavedNotice(true);
+          setTimeout(() => setIsEquipeSavedNotice(false), 3500);
+        };
+
+        const handleResetEquipe = () => {
+          if (window.confirm('Deseja restaurar as configurações padrão de pró-labore e equipe da operação diária?')) {
+            saveConfigEquipeOperacao(initialConfigEquipeOperacao);
+            if (addAuditLog) {
+              addAuditLog('Configurações de Equipe', 'Configurações de pró-labore e equipe restauradas para o padrão inicial.');
+            }
+            setIsEquipeSavedNotice(true);
+            setTimeout(() => setIsEquipeSavedNotice(false), 3000);
+          }
+        };
+
+        return (
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="card p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-l-4 border-l-indigo-500">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-indigo-500" />
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    Custos Fixos de Pró-Labore & Equipe (Operação Diária)
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">
+                  Defina os valores de remuneração mensal e as datas de início e término de vigência para cada função. 
+                  Na DRE da Operação Diária, os custos incidirão estritamente durante o período contratual especificado.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleResetEquipe}
+                  className="cr-btn cr-btn-secondary flex items-center gap-1.5 text-xs py-2"
+                  title="Restaurar valores padrão"
+                >
+                  <RefreshCcw className="w-3.5 h-3.5" />
+                  Padrões
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEquipe}
+                  className="cr-btn cr-btn-primary flex items-center gap-1.5 text-xs py-2"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Salvar Alterações
+                </button>
+              </div>
+            </div>
+
+            {/* Success Alert */}
+            {isEquipeSavedNotice && (
+              <div className="flex items-center gap-2 p-3.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs animate-cr-fadeIn">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-semibold">Configurações de Pró-Labore e Equipe salvas e sincronizadas no Supabase com sucesso!</span>
+              </div>
+            )}
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="cr-card p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Custo Mensal Vigente</span>
+                  <DollarSign className="w-4 h-4 text-emerald-500" />
+                </div>
+                <p className="text-2xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCustoVigenteHoje)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Soma das funções ativas hoje</p>
+              </div>
+
+              <div className="cr-card p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pró-Labore Sócios</span>
+                  <Briefcase className="w-4 h-4 text-indigo-500" />
+                </div>
+                <p className="text-2xl font-bold mt-2 text-indigo-600 dark:text-indigo-400">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSocios)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Dev, Gestor, Mkt e Fin vigentes</p>
+              </div>
+
+              <div className="cr-card p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Equipe Operacional</span>
+                  <Users className="w-4 h-4 text-purple-500" />
+                </div>
+                <p className="text-2xl font-bold mt-2 text-purple-600 dark:text-purple-400">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalOperacional)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Suporte, Apoio, SDR, Mkt Criação</p>
+              </div>
+
+              <div className="cr-card p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Funções Vigentes</span>
+                  <Check className="w-4 h-4 text-brand-500" />
+                </div>
+                <p className="text-2xl font-bold mt-2 text-gray-900 dark:text-white">
+                  {ativasCount} <span className="text-sm font-normal text-gray-400">de {equipeList.length}</span>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Em vigência no mês atual</p>
+              </div>
+            </div>
+
+            {/* Table Card */}
+            <div className="card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
+                      <th className="px-4 py-3">Função / Coluna Operação</th>
+                      <th className="px-4 py-3">Descrição / Área</th>
+                      <th className="px-4 py-3 min-w-[150px]">Remuneração Mensal (R$)</th>
+                      <th className="px-4 py-3 min-w-[150px]">Data Início</th>
+                      <th className="px-4 py-3 min-w-[150px]">Data Término</th>
+                      <th className="px-4 py-3 min-w-[110px]">Status</th>
+                      <th className="px-4 py-3 text-center">Situação Hoje</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800/80">
+                    {equipeList.map((item) => {
+                      const vigencia = isVigenteHoje(item.dataInicio, item.dataFim, item.status);
+                      const isSocio = item.id.startsWith('proLabore');
+
+                      return (
+                        <tr key={item.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-900/40 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
+                                isSocio 
+                                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800' 
+                                  : 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800'
+                              }`}>
+                                {item.cargo}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                            {item.descricao}
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="relative">
+                              <CurrencyInput
+                                value={item.valor}
+                                onChange={(newVal) => updateConfigEquipeItem(item.id, 'valor', newVal)}
+                                className="w-full px-2.5 py-1.5 text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                              />
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <input
+                              type="date"
+                              value={item.dataInicio || ''}
+                              onChange={(e) => updateConfigEquipeItem(item.id, 'dataInicio', e.target.value)}
+                              className="w-full px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                            />
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="date"
+                                value={item.dataFim || ''}
+                                onChange={(e) => updateConfigEquipeItem(item.id, 'dataFim', e.target.value)}
+                                className="w-full px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                              />
+                              {item.dataFim && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateConfigEquipeItem(item.id, 'dataFim', '')}
+                                  title="Remover data de término (manter indeterminado)"
+                                  className="p-1 hover:text-red-500 text-gray-400 font-bold"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <select
+                              value={item.status || 'Ativo'}
+                              onChange={(e) => updateConfigEquipeItem(item.id, 'status', e.target.value)}
+                              className="px-2 py-1.5 text-xs font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                            >
+                              <option value="Ativo">Ativo</option>
+                              <option value="Inativo">Inativo</option>
+                            </select>
+                          </td>
+
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${vigencia.badgeClass}`}>
+                              {vigencia.label}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ===== IDENTIDADE VISUAL & LOGO (ADMIN ONLY) ===== */}
       {activeConfigTab === 'identidade' && isAdmin && (

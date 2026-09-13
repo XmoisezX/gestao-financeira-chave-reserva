@@ -15,7 +15,8 @@ import {
   initialLeads,
   initialClientes,
   initialLancamentosDiarios,
-  initialFuncionarios
+  initialFuncionarios,
+  initialConfigEquipeOperacao
 } from '../data/initialData';
 
 const AppContext = createContext();
@@ -41,6 +42,7 @@ const STORAGE_KEYS = {
   NOTIFICACOES: 'chave_reserva_notificacoes_v1',
   BRAND: 'chave_reserva_custom_brand_v1',
   ROLETA: 'chave_reserva_roleta_v1',
+  CONFIG_EQUIPE_OPERACAO: 'chave_reserva_config_equipe_operacao_v1',
 };
 
 export const AppProvider = ({ children }) => {
@@ -235,6 +237,34 @@ export const AppProvider = ({ children }) => {
       } catch (e) {
         console.warn('Erro ao sincronizar marca com Supabase:', e);
       }
+    }
+  };
+
+  // Equipe & Pró-Labore para Operação Diária (Vigência e Valores)
+  const [configEquipeOperacao, setConfigEquipeOperacao] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO);
+      return saved ? JSON.parse(saved) : initialConfigEquipeOperacao;
+    } catch {
+      return initialConfigEquipeOperacao;
+    }
+  });
+
+  const updateConfigEquipeItem = (id, field, value) => {
+    setConfigEquipeOperacao(prev => {
+      const updated = (prev || []).map(item => item.id === id ? { ...item, [field]: value } : item);
+      localStorage.setItem(STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const saveConfigEquipeOperacao = async (newConfig) => {
+    setConfigEquipeOperacao(newConfig);
+    localStorage.setItem(STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO, JSON.stringify(newConfig));
+    try {
+      await syncData(STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO, newConfig);
+    } catch (e) {
+      console.warn('Erro ao sincronizar equipe de operação com Supabase:', e);
     }
   };
 
@@ -829,6 +859,7 @@ export const AppProvider = ({ children }) => {
         { key: STORAGE_KEYS.AUDIT_LOG, value: auditLog },
         { key: STORAGE_KEYS.NOTIFICACOES, value: notificacoes },
         { key: STORAGE_KEYS.BRAND, value: customBrand },
+        { key: STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO, value: configEquipeOperacao },
       ];
 
       for (const item of itemsToSync) {
@@ -875,6 +906,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.AUDIT_LOG) setAuditLog(item.value);
           if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
           if (item.key === STORAGE_KEYS.BRAND) setCustomBrand(item.value);
+          if (item.key === STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO) setConfigEquipeOperacao(item.value);
         });
         setLastSyncedAt(new Date());
       }
@@ -912,6 +944,7 @@ export const AppProvider = ({ children }) => {
           if (item.key === STORAGE_KEYS.AUDIT_LOG && item.value) setAuditLog(item.value);
           if (item.key === STORAGE_KEYS.NOTIFICACOES) setNotificacoes(item.value);
           if (item.key === STORAGE_KEYS.BRAND && item.value) setCustomBrand(item.value);
+          if (item.key === STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO && item.value) setConfigEquipeOperacao(item.value);
           localStorage.setItem(item.key, JSON.stringify(item.value));
           setLastSyncedAt(new Date());
         }
@@ -941,6 +974,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { syncData(STORAGE_KEYS.AUDIT_LOG, auditLog); }, [auditLog]);
   useEffect(() => { syncData(STORAGE_KEYS.NOTIFICACOES, notificacoes); }, [notificacoes]);
   useEffect(() => { syncData(STORAGE_KEYS.BRAND, customBrand); }, [customBrand]);
+  useEffect(() => { syncData(STORAGE_KEYS.CONFIG_EQUIPE_OPERACAO, configEquipeOperacao); }, [configEquipeOperacao]);
 
   // Always enforce fresh engine calculation for projecaoMensal when premissas or plans change
   useEffect(() => {
@@ -1534,6 +1568,7 @@ export const AppProvider = ({ children }) => {
       setTaxasPagamento(initialTaxasPagamento);
       setResumoExecutivo(initialResumoExecutivo);
       setFuncionarios(initialFuncionarios);
+      setConfigEquipeOperacao(initialConfigEquipeOperacao);
 
       Object.values(STORAGE_KEYS).forEach(key => {
         if (key !== STORAGE_KEYS.USER && key !== STORAGE_KEYS.THEME) {
@@ -1816,6 +1851,11 @@ export const AppProvider = ({ children }) => {
       // Brand Customization (Logo & Favicon)
       customBrand,
       updateCustomBrand,
+      // Equipe & Pró-Labore para Operação Diária
+      configEquipeOperacao,
+      setConfigEquipeOperacao,
+      updateConfigEquipeItem,
+      saveConfigEquipeOperacao,
       // Background Sync status & helpers
       isSyncing,
       lastSyncedAt,
