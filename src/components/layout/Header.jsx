@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateTimeBR } from '../../utils/formatters';
 import { ConfiguracoesModal } from '../user/ConfiguracoesModal';
 import {
   User,
@@ -149,8 +150,8 @@ export const Header = () => {
                             {n.tipo !== 'comissao' && n.tipo !== 'venda' && <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>}
                             <p className="font-semibold text-gray-900 dark:text-white leading-tight">{n.titulo}</p>
                           </div>
-                          <span className="text-[10px] text-gray-400 shrink-0">
-                            {new Date(n.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          <span className="text-[10px] text-gray-400 shrink-0 font-medium">
+                            {formatDateTimeBR(n.timestamp)}
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">

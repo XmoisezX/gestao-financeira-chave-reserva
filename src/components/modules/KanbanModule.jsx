@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateBR } from '../../utils/formatters';
 import {
   Kanban, List, Plus, Search, Trash2, UserCheck, Building, CheckCircle2,
   Phone, Mail, Calendar, GripVertical, ChevronDown, ArrowRight, Eye
@@ -341,7 +342,7 @@ export const KanbanModule = () => {
                                 👤 {lead.vendedorResponsavel || lead.criadoPor}
                               </span>
                             )}
-                            <span className="shrink-0">{lead.dataCriacao}</span>
+                            <span className="shrink-0 font-medium">{formatDateBR(lead.dataCriacao)}</span>
                           </div>
                         </div>
 
@@ -479,7 +480,7 @@ export const KanbanModule = () => {
                         {stageInfo?.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400">{lead.dataCriacao}</td>
+                    <td className="px-4 py-3 text-gray-500 font-medium">{formatDateBR(lead.dataCriacao)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         {lead.estagio !== 'Fechado/Ganho' && (

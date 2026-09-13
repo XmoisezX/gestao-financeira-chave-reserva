@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateBR } from '../../utils/formatters';
 import { Users, Search, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const ClientesModule = () => {
@@ -354,16 +355,8 @@ export const ClientesModule = () => {
                 <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">R$ {Number(c.mrr).toLocaleString('pt-BR')}</td>
                 <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">{c.metodoPagamento}</td>
                 <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">{c.canalOrigem || '-'}</td>
-                <td className="px-4 py-2.5">
-                  <input
-                    type="date"
-                    value={c.dataEntrada || ''}
-                    onChange={e => {
-                      addAuditLog('Edição de Data de Entrada', `Data de entrada de "${c.empresa || c.nome}" alterada para ${e.target.value}`);
-                      updateCliente(c.id, { dataEntrada: e.target.value });
-                    }}
-                    className="bg-transparent text-gray-500 dark:text-gray-400 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400 rounded px-1 py-0.5 w-[110px] cursor-pointer"
-                  />
+                <td className="px-4 py-2.5 whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">
+                  {formatDateBR(c.dataEntrada)}
                 </td>
                 <td className="px-4 py-2.5">
                   {c.status === 'Ativo' && <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">Ativo</span>}

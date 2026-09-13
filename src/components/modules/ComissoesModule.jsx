@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateBR } from '../../utils/formatters';
 import {
   DollarSign, Calendar, CheckCircle, Clock, Search, Filter
 } from 'lucide-react';
@@ -304,8 +305,8 @@ export const ComissoesModule = () => {
                         <p className="text-[11px] text-gray-500 mt-0.5">{c.nome}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                      {c.dataEntrada ? new Date(c.dataEntrada + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap font-medium">
+                      {formatDateBR(c.dataEntrada)}
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(c.mrr)}</span>

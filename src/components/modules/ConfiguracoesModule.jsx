@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateBR, formatDateTimeBR } from '../../utils/formatters';
 import {
   Settings, CreditCard, Layers, Package, Home, Percent, Plus, Trash2, ClipboardList, Search,
   Image, Upload, Globe, Check, AlertCircle, RefreshCcw, Palette, Key, ShieldCheck, Sparkles
@@ -1048,8 +1049,8 @@ export const ConfiguracoesModule = () => {
                     const colorCls = actionColors[a.action] || 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
                     return (
                       <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/60 transition-colors">
-                        <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {dt.toLocaleDateString('pt-BR')} {dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap font-medium">
+                          {formatDateTimeBR(a.timestamp)}
                         </td>
                         <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">{a.user}</td>
                         <td className="px-4 py-2.5">

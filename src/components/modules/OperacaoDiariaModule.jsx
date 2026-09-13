@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { formatDateBR } from '../../utils/formatters';
 import {
   TrendingUp, PlusCircle, CheckCircle, AlertTriangle, Trash2, BarChart3,
   HelpCircle, Info, Calendar, Filter, Download, Eye, FileText, DollarSign,
@@ -40,7 +41,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       aportesFinanceiros: formData.tipo === 'Aportes Financeiros' ? val : 0
     };
     addLancamentoDiario(payload);
-    addAuditLog('Lançamento Diário', `${formData.tipo} de R$${val.toFixed(2)} lançado em ${formData.data} (Ref: ${formData.mesReferencia}). ${formData.observacao ? `Obs: ${formData.observacao}` : ''}`);
+    addAuditLog('Lançamento Diário', `${formData.tipo} de R$${val.toFixed(2)} lançado em ${formatDateBR(formData.data)} (Ref: ${formData.mesReferencia}). ${formData.observacao ? `Obs: ${formData.observacao}` : ''}`);
     setIsModalOpen(false);
   };
 
@@ -682,7 +683,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
               ) : (
                 lancamentos.map((l) => (
                   <tr key={l.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/60 transition-colors">
-                    <td className="px-4 py-2.5 font-semibold text-gray-900 dark:text-white">{l.data}</td>
+                    <td className="px-4 py-2.5 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{formatDateBR(l.data)}</td>
                     <td className="px-4 py-2.5 text-amber-600 dark:text-amber-400 font-medium">{l.mesReferencia}</td>
                     <td className="px-4 py-2.5 text-green-600 dark:text-green-400 font-semibold">+{l.novosClientes}</td>
                     <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">{formatCurrencyPrecise(l.gastoTrafego)}</td>
@@ -705,7 +706,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                         <button
                           onClick={() => {
                             if (window.confirm('Deseja excluir este lançamento?')) {
-                              addAuditLog('Exclusão de Lançamento', `Lançamento de ${l.data} (Ref: ${l.mesReferencia}) excluído`);
+                              addAuditLog('Exclusão de Lançamento', `Lançamento de ${formatDateBR(l.data)} (Ref: ${l.mesReferencia}) excluído`);
                               deleteLancamentoDiario(l.id);
                             }
                           }}
@@ -896,7 +897,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                 type="button"
                 onClick={() => {
                   if (window.confirm('Tem certeza que deseja excluir esta operação?')) {
-                    addAuditLog('Exclusão de Lançamento', `Lançamento de ${selectedLancamento.data} (Ref: ${selectedLancamento.mesReferencia}) excluído via modal de detalhes`);
+                    addAuditLog('Exclusão de Lançamento', `Lançamento de ${formatDateBR(selectedLancamento.data)} (Ref: ${selectedLancamento.mesReferencia}) excluído via modal de detalhes`);
                     deleteLancamentoDiario(selectedLancamento.id);
                     setSelectedLancamento(null);
                   }
