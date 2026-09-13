@@ -171,23 +171,50 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       if (novosCadastradosNoMes.length > 0) {
         novosCadastradosNoMes.forEach(c => {
           const mrr = Number(c.mrr || 0);
+          const desconto = Number(c.desconto || 0);
+          const modalidade = (c.modalidade || '').toLowerCase();
           const ciclo = (c.ciclo || '').toLowerCase();
-          const modalidade = (c.modalidadePagamento || '').toLowerCase();
+          const metodo = (c.metodoPagamento || c.modalidadePagamento || '').toLowerCase();
 
-          if (ciclo.includes('anual') && (modalidade.includes('vista') || modalidade.includes('pix') || modalidade.includes('boleto'))) {
-            totalAnualAVistaRecebido += mrr * 12;
-          } else if (ciclo.includes('anual') && (modalidade.includes('cartao') || modalidade.includes('crédito'))) {
-            totalAnualCartaoRecebido += mrr * 12;
+          const isAnualVista = modalidade === 'anualvista' || 
+            modalidade.includes('vista') || 
+            (ciclo.includes('anual') && (metodo.includes('vista') || metodo.includes('pix') || metodo.includes('boleto'))) ||
+            metodo.includes('à vista') || metodo.includes('a vista');
+
+          const isAnualCartao = modalidade === 'anualparcelado' || 
+            (ciclo.includes('anual') && (metodo.includes('cartao') || metodo.includes('crédito') || metodo.includes('parcel')));
+
+          if (isAnualVista) {
+            const valorTotal = (mrr * 12) * (1 - desconto / 100);
+            totalAnualAVistaRecebido += valorTotal;
+          } else if (isAnualCartao) {
+            const valorTotal = (mrr * 12) * (1 - desconto / 100);
+            totalAnualCartaoRecebido += valorTotal;
           } else {
-            totalMensalRecebido += mrr;
+            totalMensalRecebido += mrr * (1 - desconto / 100);
           }
         });
       }
 
+      // Lançamentos manuais de receita do mês que não sejam automáticos de venda de clientes
+      const manualLancReceita = monthLancamentos
+        .filter(l => !l.clientId && !String(l.id).startsWith('lanc-auto-venda-'))
+        .reduce((acc, l) => acc + Number(l.receitaReais || 0), 0);
+
+      // Pagamentos à vista que entraram no caixa
+      const pagamentosAVistaEntraram = hasClientsInDb
+        ? (totalAnualAVistaRecebido + manualLancReceita)
+        : (lancReceita > 0 ? lancReceita : (meta.receitaCaixa || 0));
+
       const receitaCaixaAnualVista = totalAnualAVistaRecebido;
       const receitaCaixaAnualCartao = totalAnualCartaoRecebido;
-      const receitaCaixaMensal = hasClientsInDb ? mrrTotal : (lancReceita > 0 ? lancReceita : 0);
-      const receitaCaixa = receitaCaixaAnualVista + receitaCaixaAnualCartao + receitaCaixaMensal + lancAportes;
+      const receitaCaixaMensal = totalMensalRecebido > 0 ? totalMensalRecebido : (hasClientsInDb ? mrrTotal : 0);
+
+      // Coluna "Rec. Caixa": o usuário definiu que a coluna que deve considerar o MRR mensal é a "Rec. Caixa"
+      const receitaCaixa = hasClientsInDb ? mrrTotal : (lancReceita > 0 ? lancReceita : (meta.receitaCaixa || 0));
+
+      // Entradas efetivas no Caixa para apuração do Resultado de Caixa (pagamentos à vista que entraram + aportes)
+      const entradasCaixaReal = pagamentosAVistaEntraram + lancAportes;
 
       // Projeção base: fallback to meta values if zero lancamentos
       const receitaEmpresa = lancReceita > 0 ? lancReceita : mrrTotal;
@@ -238,9 +265,9 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
 
       // Operational Overhead
       const infraestrutura = Number(premissaObj.infraestrutura || premissas?.infraestrutura || 100);
-      const taxasPagamentoVal = (receitaCaixa * (Number(premissaObj.taxaCartao || premissas?.taxaCartao || 3) / 100));
+      const taxasPagamentoVal = (entradasCaixaReal * (Number(premissaObj.taxaCartao || premissas?.taxaCartao || 3) / 100));
       const impostos = (receitaEmpresa * (Number(premissaObj.impostoAliquota || premissas?.impostoAliquota || 8) / 100));
-      const impostosCaixa8 = (receitaCaixa * (Number(premissaObj.impostoAliquota || premissas?.impostoAliquota || 8) / 100));
+      const impostosCaixa8 = (entradasCaixaReal * (Number(premissaObj.impostoAliquota || premissas?.impostoAliquota || 8) / 100));
 
       const totalCustosFixoEquipe = proLaboreDev + proLaboreGestor + proLaboreMkt + proLaboreFin + suporteFixo + apoioTecnico + sdr + marketingCriacao + bonusMetas;
       const totalCustosVariaveis = comissaoVendas + bonusVendaAnual + comissaoSuporte + investimentoTrafego + custoListaFria + custo1aInfluencer + custoRecorrenteInfluencer + lancCustosOperacionais;
@@ -250,7 +277,9 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       const resultadoLiquido = receitaEmpresa - totalDespesasOperacionais;
 
       const despesasCaixa = totalCustosFixoEquipe + totalCustosVariaveis + infraestrutura + taxasPagamentoVal + impostosCaixa8;
-      const resultadoCaixa = receitaCaixa - despesasCaixa;
+      
+      // Coluna "Res. Caixa": considera os pagamentos à vista que entraram e NÃO o MRR mensal
+      const resultadoCaixa = entradasCaixaReal - despesasCaixa;
 
       accumulatedCaixaReal += resultadoCaixa;
 
@@ -574,9 +603,15 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                                     (l.observacao && c.nome && l.observacao.includes(c.nome))
                                   );
                                   if (!alreadyExists) {
-                                    const isAnualVista = (c.ciclo || '').toLowerCase().includes('anual') &&
-                                      ((c.modalidadePagamento || '').toLowerCase().includes('vista') || (c.modalidadePagamento || '').toLowerCase().includes('pix') || (c.modalidadePagamento || '').toLowerCase().includes('boleto'));
-                                    const receita = isAnualVista ? (Number(c.mrr || 0) * 12) : Number(c.mrr || 0);
+                                    const mod = (c.modalidade || '').toLowerCase();
+                                    const ciclo = (c.ciclo || '').toLowerCase();
+                                    const met = (c.metodoPagamento || c.modalidadePagamento || '').toLowerCase();
+                                    const isAnualVista = mod === 'anualvista' || 
+                                      mod.includes('vista') || 
+                                      (ciclo.includes('anual') && (met.includes('vista') || met.includes('pix') || met.includes('boleto'))) ||
+                                      met.includes('à vista') || met.includes('a vista');
+                                    const desconto = Number(c.desconto || 0);
+                                    const receita = (isAnualVista ? (Number(c.mrr || 0) * 12) : Number(c.mrr || 0)) * (1 - desconto / 100);
 
                                     lmes.push({
                                       id: `synth-cli-${c.id}`,
@@ -588,9 +623,9 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                                       comissaoVendas: 0,
                                       comissaoSuporte: 0,
                                       custosOperacionais: 0,
-                                      receitaReais: receita * (1 - (c.desconto || 0) / 100),
+                                      receitaReais: receita,
                                       aportesFinanceiros: 0,
-                                      observacao: `Venda validada: ${c.empresa || c.nome}. Vendedor: ${c.vendedorResponsavel || '—'}. Suporte: ${c.suporteResponsavel || '—'}. Modalidade: ${isAnualVista ? 'Anual à Vista' : 'Mensal'}.`
+                                      observacao: `Venda validada: ${c.empresa || c.nome}. Vendedor: ${c.vendedorResponsavel || '—'}. Suporte: ${c.suporteResponsavel || '—'}. Modalidade: ${isAnualVista ? 'Anual à Vista' : (mod === 'anualparcelado' ? 'Anual Parcelado' : 'Mensal')}.`
                                     });
                                   }
                                 }
