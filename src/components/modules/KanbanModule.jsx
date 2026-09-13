@@ -9,7 +9,7 @@ import {
 const STAGES = [
   { id: 'Lead', label: 'Lead', dot: 'bg-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', headerBorder: 'border-blue-500', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
   { id: 'Contato Feito', label: 'Contato Feito', dot: 'bg-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/40', headerBorder: 'border-indigo-500', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' },
-  { id: 'Proposta Enviada', label: 'Proposta', dot: 'bg-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/40', headerBorder: 'border-amber-500', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
+  { id: 'Proposta Enviada', label: 'Proposta', dot: 'bg-brand-500', bg: 'bg-amber-50 dark:bg-amber-950/40', headerBorder: 'border-brand-500', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
   { id: 'Negociação', label: 'Negociação', dot: 'bg-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/40', headerBorder: 'border-purple-500', badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
   { id: 'Fechado/Ganho', label: 'Fechado', dot: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', headerBorder: 'border-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
   { id: 'Perdido', label: 'Perdido', dot: 'bg-red-500', bg: 'bg-red-50 dark:bg-red-950/40', headerBorder: 'border-red-400', badge: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' }

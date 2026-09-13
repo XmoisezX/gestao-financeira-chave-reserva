@@ -143,7 +143,7 @@ export const FuncionariosModule = () => {
     }
   };
 
-  const inputCls = "w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors";
+  const inputCls = "cr-input";
 
   const formatDateBR = (dateStr) => {
     if (!dateStr) return null;
@@ -152,21 +152,20 @@ export const FuncionariosModule = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-cr-fadeIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-amber-500" />
+          <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             Usuários do Sistema
           </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Cadastre os usuários com acesso ao sistema, seus cargos, credenciais (e-mail e senha), dados cadastrais (CPF, Pix) e remuneração mensal com vigência.
+          <p className="text-[13px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+            Cadastre os usuários com acesso ao sistema, seus cargos, credenciais e remuneração mensal.
           </p>
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-all font-semibold text-xs shadow-sm"
+          className="cr-btn cr-btn-primary"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Usuário</span>
@@ -175,49 +174,49 @@ export const FuncionariosModule = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card p-4 flex flex-col justify-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total de Usuários</p>
+        <div className="cr-kpi">
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Total de Usuários</p>
           <div className="flex items-baseline justify-between mt-1">
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{(funcionarios || []).length}</p>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{(funcionarios || []).length}</p>
+            <span className="cr-badge cr-badge-success">
               {(funcionarios || []).filter(f => f.status === 'Ativo').length} ativos
             </span>
           </div>
         </div>
-        <div className="card p-4 flex flex-col justify-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Time de Vendas & Suporte</p>
+        <div className="cr-kpi">
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Time de Vendas & Suporte</p>
           <div className="flex items-baseline justify-between mt-1">
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {(funcionarios || []).filter(f => ['Vendedor', 'SDR', 'Suporte', 'Apoio Técnico'].includes(f.cargo)).length}
             </p>
-            <span className="text-xs text-gray-400">Comissionados</span>
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Comissionados</span>
           </div>
         </div>
-        <div className="card p-4 flex flex-col justify-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Custo Fixo Mensal Atual</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+        <div className="cr-kpi">
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Custo Fixo Mensal Atual</p>
+          <p className="text-2xl font-bold mt-1" style={{ color: 'var(--brand-600)' }}>
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCusto)}
           </p>
         </div>
       </div>
 
       {/* Table Card */}
-      <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="cr-card overflow-hidden">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--border-default)' }}>
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
             <input
               type="text"
               placeholder="Buscar por nome, e-mail, cargo ou CPF..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              className="cr-input pl-9"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="cr-table">
             <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-gray-800 uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="px-4 py-3">Usuário / Acesso</th>
@@ -241,7 +240,7 @@ export const FuncionariosModule = () => {
                   <tr key={func.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ background: 'var(--brand-100)', color: 'var(--brand-700)' }}>
                           {(func.nome || 'U').substring(0, 2).toUpperCase()}
                         </div>
                         <div>
@@ -313,7 +312,9 @@ export const FuncionariosModule = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenModal(func)}
-                          className="p-1.5 text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--text-tertiary)' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--brand-600)'; e.currentTarget.style.background = 'var(--neutral-100)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
                           title="Editar usuário"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -337,24 +338,23 @@ export const FuncionariosModule = () => {
 
       {/* Modal de Criação / Edição */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl my-auto overflow-hidden">
+        <div className="cr-modal-overlay">
+          <div className="cr-modal cr-modal-lg">
             {/* Modal Header */}
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-amber-500" />
+            <div className="cr-modal-header">
+              <h3 className="text-[15px] font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 {(funcionarios || []).find(f => f.id === formData.id) ? 'Editar Usuário' : 'Novo Usuário do Sistema'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="cr-btn cr-btn-ghost w-8 h-8 p-0"
               >
                 ×
               </button>
             </div>
 
             <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+              <div className="cr-modal-body space-y-4">
                 {/* Nome Completo */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -400,8 +400,8 @@ export const FuncionariosModule = () => {
                 </div>
 
                 {/* Credenciais: E-mail e Senha */}
-                <div className="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-3">
-                  <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                <div className="p-3.5 rounded-xl space-y-3" style={{ background: 'var(--brand-50)', border: '1px solid var(--brand-200)' }}>
+                  <p className="text-[11px] font-bold flex items-center gap-1.5" style={{ color: 'var(--brand-700)' }}>
                     <Key className="w-3.5 h-3.5" /> Credenciais de Login no Sistema
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -465,16 +465,21 @@ export const FuncionariosModule = () => {
                             onClick={() => toggleCargo(c)}
                             className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium border transition-all text-left ${
                               isSelected
-                                ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-900 dark:text-indigo-200 ring-1 ring-indigo-500/30'
-                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                ? 'border-brand-500 ring-1 ring-brand-500/30'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
+                            style={{
+                              background: isSelected ? 'var(--brand-50)' : 'var(--bg-surface)',
+                              color: isSelected ? 'var(--brand-700)' : 'var(--text-secondary)',
+                            }}
                           >
                             <span className="truncate">{c}</span>
                             <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold shrink-0 ml-1 ${
                               isSelected
-                                ? 'bg-indigo-600 text-white'
+                                ? 'text-white'
                                 : 'border border-gray-300 dark:border-gray-600'
-                            }`}>
+                            }`}
+                            style={isSelected ? { background: 'var(--brand-600)' } : {}}>
                               {isSelected ? '✓' : ''}
                             </span>
                           </button>
@@ -505,8 +510,8 @@ export const FuncionariosModule = () => {
 
                 {/* Remuneração & Vigência */}
                 <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-xl space-y-3">
-                  <p className="text-[11px] font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                    <DollarSign className="w-3.5 h-3.5 text-amber-500" /> Remuneração Mensal & Período de Vigência
+                  <p className="text-[11px] font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                    <DollarSign className="w-3.5 h-3.5" style={{ color: 'var(--brand-500)' }} /> Remuneração Mensal & Período de Vigência
                   </p>
 
                   <div>
@@ -556,19 +561,18 @@ export const FuncionariosModule = () => {
                 </div>
               </div>
 
-              {/* Pinned Modal Buttons */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-2.5 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="cr-btn cr-btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
+                  className="cr-btn cr-btn-primary"
                 >
                   {isSaving ? 'Salvando...' : 'Salvar Usuário'}
                 </button>

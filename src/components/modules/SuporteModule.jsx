@@ -370,7 +370,7 @@ export const SuporteModule = () => {
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded text-[10.5px] font-semibold ${
                             c.modalidade === 'anualVista'
-                              ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                              ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-brand-200 dark:border-brand-800'
                               : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                           }`}>
                             {c.modalidade === 'anualVista' ? 'Anual à Vista' : c.modalidade === 'anualParcelado' ? 'Anual Parcelado' : 'Mensal Recorrente'}
@@ -661,7 +661,7 @@ export const SuporteModule = () => {
 
       {/* REASSIGN SUPPORT MODAL (ADMIN ONLY) */}
       {reassignModalClient && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+        <div className="cr-modal-overlay">
           <div className="relative w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl p-5 space-y-4">
             <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">

@@ -121,7 +121,7 @@ export const MetasModule = () => {
   const gridStroke = isDark ? '#1f2937' : '#f3f4f6';
   const axisStroke = isDark ? '#6b7280' : '#9ca3af';
 
-  const cellInputCls = "w-full bg-transparent px-1.5 py-1 text-xs focus:outline-none focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:ring-1 focus:ring-amber-500 rounded transition-colors";
+  const cellInputCls = "w-full bg-transparent px-1.5 py-1 text-xs focus:outline-none focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:ring-1 focus:ring-brand-500 rounded transition-colors";
 
   return (
     <div className="space-y-6">
@@ -168,7 +168,7 @@ export const MetasModule = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={addProjecaoMonth}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors shrink-0"
                 title="Adicionar próximo mês à projeção"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -186,55 +186,55 @@ export const MetasModule = () => {
                   <th className="px-3 py-2.5 font-medium sticky left-0 bg-gray-50 dark:bg-gray-900 z-10 min-w-[80px]" title="1. Mês&#10;• De onde sai o número: É a linha do tempo (cronograma) do seu planejamento financeiro.&#10;• Como é calculated: É uma sequência direta de meses, começando em setembro de 2026 (Sep/2026) e avançando mês a mês até dezembro de 2027 (Dec/2027). Clique no botão + ao lado do último mês para adicionar os meses seguintes.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Mês</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[100px]" title="2. Clientes ativos&#10;• De onde sai o número: Depende do histórico do mês anterior e do crescimento do mês atual.&#10;• Como é calculado: No primeiro mês (Sep/2026), começa igual à meta de novos clientes líquidos (5). Nos meses seguintes: Clientes ativos (do mês anterior) + Novos líquidos meta (do mês atual).&#10;• Exemplo prático (Out/2026): Tinha 5 clientes em setembro e a meta líquida era somar 7. Logo, 5 + 7 = 12 clientes ativos.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Clientes Meta</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[70px]" title="3. Churn (Cancelamentos)&#10;• De onde sai o número: É calculado aplicando a taxa de cancelamento estipulada na tabela de Premissas sobre a base de clientes do mês anterior/atual.&#10;• Como é calculado: Clientes ativos × Taxa de Churn mensal (3,00%), arredondado (>= 0.5 arredonda para cima, < 0.5 para baixo).&#10;• Exemplo prático (Fev/2027): 60 clientes × 3% = 1,8 → arredondado resulta em 2 cancelamentos.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Churn</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[110px]" title="4. Novos líquidos meta&#10;• De onde sai o número: Meta de crescimento real (saldo líquido) inserida pelo usuário. Use o ícone de cadeado na célula para fixar o valor.&#10;• Como é calculado: É um valor inserido pelo usuário como objetivo estratégico de crescimento.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Novos Liq</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[105px]" title="5. Novos brutos necessários&#10;• De onde sai o número: É calculado somando o crescimento que você quer ter (líquido) com os clientes que você sabe que vai perder (churn).&#10;• Como é calculado: Novos líquidos meta + Churn. Ele mostra quantas vendas totais a sua equipe comercial precisa realizar para compensar cancelamentos e atingir a meta.&#10;• Exemplo prático (Dez/2026): Sua meta é crescer 10 clientes líquidos e a previsão de churn é 1. Logo, você precisa vender para 10 + 1 = 11 novos clientes brutos.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Novos Brutos</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[115px]" title="6. MRR meta (ou MMR meta)&#10;• De onde sai o número: É a Receita Recorrente Mensal calculada distribuindo os Clientes Meta pelo Mix de Vendas (%) dos planos e pela proporção Mensal vs Anual.&#10;• Como é calculado: Para cada plano: (Preço Mensal × % Mensal + Preço Anual Mensal × % Anual) × % Mix de Vendas × Clientes Meta. Soma de todos os planos.&#10;• Exemplo prático: Com 100 clientes e mix de planos (Corretor 10%, Basic 25%, Pro 50%, Master 15%) e proporção 70% mensal / 30% anual, resulta em um Ticket Médio dos planos de R$ 312,08 → MRR Meta = R$ 31.208,00.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>MRR Meta (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[125px]" title="7. MRR Aluguel (ou MMR aluguel)&#10;• De onde sai o número: É a receita vinda do módulo opcional de aluguéis, cujas regras estão na tabela de Aluguel.&#10;• Como é calculado: Previsão de lançamento para novembro de 2026 (2026-11-01). Antes dessa data é R$ 0. A partir de novembro de 2026, 30% da base de clientes ativos contratará esse módulo por R$ 200,00 mensais. Fórmula: Clientes ativos × 30% (Adesão) × R$ 200,00.&#10;• Exemplo prático (Nov/2026): 20 clientes ativos × 30% × R$ 200,00 = R$ 1.200,00.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>MRR Aluguel (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[125px]" title="8. MRR Pacotes (ou MMR Pacotes)&#10;• De onde sai o número: É o faturamento recorrente somado de todos os pequenos pacotes adicionais (Usuários extras, Imóveis adicionais, E-mail profissional e Assinatura digital) listados na tabela de Pacotes adicionais.&#10;• Como é calculated: Para cada pacote já lançado até aquele mês: Clientes ativos × % Previsão de vendas × Valor do pacote. Soma de todos eles.&#10;• Exemplo prático (Set/2026): Usuários (5 × 7% × 29,99 = 10,50) + Imóveis (5 × 8% × 19,99 = 8,00) = R$ 18,49.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>MRR Pacotes (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[115px]" title="9. MRR Total (ou MMR total)&#10;• De onde sai o número: É o faturamento recorrente total bruto do mês.&#10;• Como é calculado: Soma simples das três frentes de receita recorrente: MRR meta + MRR Aluguel + MRR Pacotes.&#10;• Exemplo prático (Nov/2026): R$ 6.640,00 (Meta) + R$ 1.200,00 (Aluguel) + R$ 188,97 (Pacotes) = R$ 8.028,97.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>MRR Total (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[100px]">Receita Emp (R$)</th>
@@ -242,13 +242,13 @@ export const MetasModule = () => {
                   <th className="px-2 py-2.5 font-medium min-w-[100px]" title="Bônus Venda Anual (R$)&#10;• De onde sai o número: Bônus de 20% adicional sobre a 1ª parcela de planos anuais.&#10;• Como é calculado: (Novos Brutos × % Anual) × Ticket Anual 1ª Parcela × 20%.">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Bônus Anual (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[100px]" title="Comissão Suporte (R$)&#10;• De onde sai o número: Paga na 2ª parcela para clientes mensais e no 1º mês para vendas anuais (à vista).&#10;• Como é calculado: (Novos Anuais do Mês × Ticket Anual × 50%) + (Novos Mensais do Mês Anterior × Ticket Mensal × 50%).">
                     <div className="flex items-center gap-1 cursor-help">
                       <span>Comissão Sup (R$)</span>
-                      <HelpCircle className="w-3 h-3 text-amber-500" />
+                      <HelpCircle className="w-3 h-3 text-brand-500" />
                     </div>
                   </th>
                   <th className="px-2 py-2.5 font-medium min-w-[70px]">Novos Tráfego</th>
@@ -291,7 +291,7 @@ export const MetasModule = () => {
                           <button
                             type="button"
                             onClick={addProjecaoMonth}
-                            className="px-1.5 py-0.5 rounded bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold shadow-xs transition-colors flex items-center gap-0.5 shrink-0"
+                            className="px-1.5 py-0.5 rounded bg-brand-500 hover:bg-brand-600 text-white text-[10px] font-bold shadow-xs transition-colors flex items-center gap-0.5 shrink-0"
                             title="Adicionar próximo mês"
                           >
                             <Plus className="w-3 h-3" />
@@ -322,7 +322,7 @@ export const MetasModule = () => {
                           onClick={() => toggleLockNovos(idx)}
                           className={`p-1 rounded transition-colors shrink-0 ${
                             p.isLockedNovos
-                              ? 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200'
+                              ? 'text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/40 hover:bg-amber-200'
                               : 'text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400'
                           }`}
                           title={p.isLockedNovos ? 'Valor fixado/bloqueado (Clique para desbloquear)' : 'Clique para fixar valor'}
@@ -495,7 +495,7 @@ export const MetasModule = () => {
                 type="number"
                 value={resumoExecutivo.clientesAtivosFinais}
                 onChange={(e) => updateResumoCell('clientesAtivosFinais', Number(e.target.value))}
-                className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
               />
               <div className="flex items-center gap-1 text-xs text-gray-400">
                 <span>Brutos necessários:</span>
@@ -513,7 +513,7 @@ export const MetasModule = () => {
               <CurrencyInput
                 value={resumoExecutivo.mrrFinalMeta}
                 onChange={(val) => updateResumoCell('mrrFinalMeta', val)}
-                className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
               />
               <p className="text-xs text-gray-400">Ticket médio projetado: R$ 332</p>
             </div>
@@ -523,7 +523,7 @@ export const MetasModule = () => {
               <CurrencyInput
                 value={resumoExecutivo.resultadoDez2027AposImpostos}
                 onChange={(val) => updateResumoCell('resultadoDez2027AposImpostos', val)}
-                className="text-3xl font-bold text-green-600 dark:text-green-400 bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                className="text-3xl font-bold text-green-600 dark:text-green-400 bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
               />
               <p className="text-xs text-gray-400">Após reserva de caixa (8%)</p>
             </div>
@@ -594,7 +594,7 @@ export const MetasModule = () => {
               })()}
               <button
                 onClick={() => addPlano()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
                 title="Adicionar novo plano de assinatura"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -611,7 +611,7 @@ export const MetasModule = () => {
                     type="text"
                     value={pl.plano}
                     onChange={(e) => updatePlanoCell(idx, 'plano', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Plano"
                   />
                   {planos.length > 1 && (
@@ -681,7 +681,7 @@ export const MetasModule = () => {
             </div>
             <button
               onClick={() => addAluguel()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               title="Adicionar novo módulo de aluguel"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -697,7 +697,7 @@ export const MetasModule = () => {
                     type="text"
                     value={al.plano}
                     onChange={(e) => updateAluguelCell(idx, 'plano', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Módulo"
                   />
                   {aluguel.length > 1 && (
@@ -768,7 +768,7 @@ export const MetasModule = () => {
                   <select
                     value={al.previsaoLancamento || (projecaoMensal[0]?.month || 'Sep/2026')}
                     onChange={(e) => updateAluguelCell(idx, 'previsaoLancamento', e.target.value)}
-                    className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-amber-200 dark:border-amber-900/40"
+                    className="text-xs font-semibold text-brand-700 dark:text-brand-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-brand-200 dark:border-brand-900/40"
                   >
                     {projecaoMensal.map((p, mIdx) => (
                       <option key={mIdx} value={p.month}>
@@ -793,7 +793,7 @@ export const MetasModule = () => {
             </div>
             <button
               onClick={() => addPacote()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               title="Adicionar novo pacote adicional"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -809,7 +809,7 @@ export const MetasModule = () => {
                     type="text"
                     value={pc.pacote}
                     onChange={(e) => updatePacoteCell(idx, 'pacote', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Pacote"
                   />
                   {pacotes.length > 1 && (
@@ -872,7 +872,7 @@ export const MetasModule = () => {
                   <select
                     value={pc.previsaoLancamento || (projecaoMensal[0]?.month || 'Sep/2026')}
                     onChange={(e) => updatePacoteCell(idx, 'previsaoLancamento', e.target.value)}
-                    className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-amber-200 dark:border-amber-900/40"
+                    className="text-xs font-semibold text-brand-700 dark:text-brand-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-brand-200 dark:border-brand-900/40"
                   >
                     {projecaoMensal.map((p, mIdx) => (
                       <option key={mIdx} value={p.month}>
@@ -1004,10 +1004,10 @@ export const MetasModule = () => {
                 />
                 {isTicket ? (
                   <div className="flex items-center gap-1 shrink-0" title="Calculado automaticamente baseado nos preços dos planos, mix de vendas e proporção mensal/anual">
-                    <span className="text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/50 px-2.5 py-1 rounded text-center min-w-[90px]">
+                    <span className="text-xs font-bold text-brand-700 dark:text-brand-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/50 px-2.5 py-1 rounded text-center min-w-[90px]">
                       {pr.valor}
                     </span>
-                    <span className="text-[10px] text-amber-500 font-semibold">(Auto)</span>
+                    <span className="text-[10px] text-brand-500 font-semibold">(Auto)</span>
                   </div>
                 ) : String(pr.valor).includes('%') || String(pr.premissa).toLowerCase().includes('churn') || String(pr.premissa).toLowerCase().includes('comissão') || String(pr.premissa).toLowerCase().includes('proporção') || String(pr.premissa).toLowerCase().includes('reserva') || String(pr.premissa).toLowerCase().includes('taxa') ? (
                   <PercentInput

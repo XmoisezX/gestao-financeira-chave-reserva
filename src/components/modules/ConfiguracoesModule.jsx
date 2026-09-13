@@ -189,7 +189,7 @@ export const ConfiguracoesModule = () => {
   const [auditSearch, setAuditSearch] = useState('');
   const [auditUserFilter, setAuditUserFilter] = useState('todos');
 
-  const cellInputCls = "w-full bg-transparent px-1.5 py-1 text-xs focus:outline-none focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:ring-1 focus:ring-amber-500 rounded transition-colors";
+  const cellInputCls = "w-full bg-transparent px-1.5 py-1 text-xs focus:outline-none focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:ring-1 focus:ring-brand-500 rounded transition-colors";
 
   // Filter premissas for comissões tab
   const comissoesPremissas = premissas.filter(pr => {
@@ -256,7 +256,7 @@ export const ConfiguracoesModule = () => {
                     value={pr.valor}
                     isString={true}
                     onChange={(val) => updatePremissaCell(originalIdx, 'valor', val)}
-                    className="text-lg font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-lg w-full text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="text-lg font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-lg w-full text-center focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               );
@@ -356,7 +356,7 @@ export const ConfiguracoesModule = () => {
             </div>
             <button
               onClick={() => addPlano()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               title="Adicionar novo plano de assinatura"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ export const ConfiguracoesModule = () => {
                     type="text"
                     value={pl.plano}
                     onChange={(e) => updatePlanoCell(idx, 'plano', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Plano"
                   />
                   {planos.length > 1 && (
@@ -430,7 +430,7 @@ export const ConfiguracoesModule = () => {
             </div>
             <button
               onClick={() => addPacote()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               title="Adicionar novo pacote adicional"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -446,7 +446,7 @@ export const ConfiguracoesModule = () => {
                     type="text"
                     value={pc.pacote}
                     onChange={(e) => updatePacoteCell(idx, 'pacote', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Pacote"
                   />
                   {pacotes.length > 1 && (
@@ -498,7 +498,7 @@ export const ConfiguracoesModule = () => {
                     <select
                       value={pc.previsaoLancamento || (projecaoMensal[0]?.month || 'Sep/2026')}
                       onChange={(e) => updatePacoteCell(idx, 'previsaoLancamento', e.target.value)}
-                      className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-amber-200 dark:border-amber-900/40"
+                      className="text-xs font-semibold text-brand-700 dark:text-brand-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-brand-200 dark:border-brand-900/40"
                     >
                       {projecaoMensal.map((p, mIdx) => (
                         <option key={mIdx} value={p.month}>{p.month}</option>
@@ -522,7 +522,7 @@ export const ConfiguracoesModule = () => {
             </div>
             <button
               onClick={() => addAluguel()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               title="Adicionar novo módulo de aluguel"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -538,7 +538,7 @@ export const ConfiguracoesModule = () => {
                     type="text"
                     value={al.plano}
                     onChange={(e) => updateAluguelCell(idx, 'plano', e.target.value)}
-                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-amber-500"
+                    className="font-semibold text-sm text-gray-900 dark:text-white bg-transparent border-b border-gray-200 dark:border-gray-700 w-full focus:outline-none focus:border-brand-500"
                     placeholder="Nome do Módulo"
                   />
                   {aluguel.length > 1 && (
@@ -598,7 +598,7 @@ export const ConfiguracoesModule = () => {
                     <select
                       value={al.previsaoLancamento || (projecaoMensal[0]?.month || 'Sep/2026')}
                       onChange={(e) => updateAluguelCell(idx, 'previsaoLancamento', e.target.value)}
-                      className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-amber-200 dark:border-amber-900/40"
+                      className="text-xs font-semibold text-brand-700 dark:text-brand-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 rounded w-full focus:outline-none border border-brand-200 dark:border-brand-900/40"
                     >
                       {projecaoMensal.map((p, mIdx) => (
                         <option key={mIdx} value={p.month}>{p.month}</option>
@@ -619,7 +619,7 @@ export const ConfiguracoesModule = () => {
           <div className="card p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-l-4 border-l-amber-500">
             <div>
               <div className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-amber-500" />
+                <Palette className="w-5 h-5 text-brand-500" />
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">Identidade Visual da Empresa</h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                   <ShieldCheck className="w-3 h-3" /> Exclusivo Administrador
@@ -642,7 +642,7 @@ export const ConfiguracoesModule = () => {
               <button
                 type="button"
                 onClick={handleSaveBrand}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-colors"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Salvar Alterações</span>
@@ -669,7 +669,7 @@ export const ConfiguracoesModule = () => {
               {/* 1. Nome do Sistema */}
               <div className="card p-5 space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs">
                     1
                   </div>
                   <div>
@@ -684,7 +684,7 @@ export const ConfiguracoesModule = () => {
                     value={brandForm.appName}
                     onChange={e => setBrandForm({ ...brandForm, appName: e.target.value })}
                     placeholder="Ex: Chave Reserva"
-                    className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors font-medium"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors font-medium"
                   />
                 </div>
               </div>
@@ -693,7 +693,7 @@ export const ConfiguracoesModule = () => {
               <div className="card p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs">
                       2
                     </div>
                     <div>
@@ -726,9 +726,9 @@ export const ConfiguracoesModule = () => {
                 {/* Drag & Drop / Click Upload Box */}
                 <div
                   onClick={() => logoInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-brand-500 dark:hover:border-brand-500 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
                     <Upload className="w-5 h-5" />
                   </div>
                   <p className="text-xs font-semibold text-gray-900 dark:text-white">
@@ -751,7 +751,7 @@ export const ConfiguracoesModule = () => {
                       value={brandForm.logoUrl}
                       onChange={e => setBrandForm({ ...brandForm, logoUrl: e.target.value })}
                       placeholder="https://suaempresa.com/logo.png"
-                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono text-[11px]"
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono text-[11px]"
                     />
                   </div>
                 </div>
@@ -761,7 +761,7 @@ export const ConfiguracoesModule = () => {
               <div className="card p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs">
                       3
                     </div>
                     <div>
@@ -794,9 +794,9 @@ export const ConfiguracoesModule = () => {
                 {/* Drag & Drop / Click Upload Box */}
                 <div
                   onClick={() => faviconInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 rounded-xl p-5 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-brand-500 dark:hover:border-brand-500 rounded-xl p-5 text-center cursor-pointer transition-all bg-gray-50/50 dark:bg-gray-900/30 hover:bg-amber-50/20 dark:hover:bg-amber-950/10 group"
                 >
-                  <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                  <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
                     <Globe className="w-4 h-4" />
                   </div>
                   <p className="text-xs font-semibold text-gray-900 dark:text-white">
@@ -819,7 +819,7 @@ export const ConfiguracoesModule = () => {
                       value={brandForm.faviconUrl}
                       onChange={e => setBrandForm({ ...brandForm, faviconUrl: e.target.value })}
                       placeholder="https://suaempresa.com/favicon.ico"
-                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono text-[11px]"
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono text-[11px]"
                     />
                   </div>
                 </div>
@@ -830,7 +830,7 @@ export const ConfiguracoesModule = () => {
                 <button
                   type="button"
                   onClick={handleSaveBrand}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4" />
                   <span>Salvar & Aplicar Identidade Visual</span>
@@ -846,7 +846,7 @@ export const ConfiguracoesModule = () => {
               <div className="card p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-amber-500" />
+                    <Globe className="w-3.5 h-3.5 text-brand-500" />
                     Prévia: Aba do Navegador
                   </span>
                   <span className="text-[10px] text-gray-400">Ao vivo</span>
@@ -872,7 +872,7 @@ export const ConfiguracoesModule = () => {
                           onError={e => { e.target.style.display = 'none'; }}
                         />
                       ) : (
-                        <Key className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <Key className="w-3.5 h-3.5 text-brand-500 shrink-0" />
                       )}
                       <span className="truncate text-[11px] font-semibold">
                         {brandForm.appName || 'Chave Reserva'} | Gestão
@@ -893,7 +893,7 @@ export const ConfiguracoesModule = () => {
               <div className="card p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                    <Image className="w-3.5 h-3.5 text-amber-500" />
+                    <Image className="w-3.5 h-3.5 text-brand-500" />
                     Prévia: Menu Superior Esquerdo
                   </span>
                 </div>
@@ -911,7 +911,7 @@ export const ConfiguracoesModule = () => {
                       />
                     ) : (
                       <>
-                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center shrink-0 shadow-xs">
                           <Key className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-sm font-bold text-gray-900 tracking-tight truncate">
@@ -935,7 +935,7 @@ export const ConfiguracoesModule = () => {
                       />
                     ) : (
                       <>
-                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center shrink-0 shadow-xs">
                           <Key className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-sm font-bold text-white tracking-tight truncate">
@@ -950,7 +950,7 @@ export const ConfiguracoesModule = () => {
               {/* Preview 3: Login Header Mockup */}
               <div className="card p-4 space-y-3">
                 <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-amber-500" />
+                  <Key className="w-3.5 h-3.5 text-brand-500" />
                   Prévia: Tela de Login
                 </span>
                 
@@ -964,7 +964,7 @@ export const ConfiguracoesModule = () => {
                     />
                   ) : (
                     <>
-                      <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center mx-auto shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center mx-auto shadow-sm">
                         <Key className="w-5 h-5 text-white" />
                       </div>
                       <h5 className="text-sm font-bold text-gray-900 dark:text-white">

@@ -198,7 +198,7 @@ export const ComissoesModule = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-amber-500" />
+            <DollarSign className="w-5 h-5 text-brand-500" />
             Comissões
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -218,12 +218,12 @@ export const ComissoesModule = () => {
           <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{formatCurrency(totalComissaoSuporte)}</p>
         </div>
         <div className="card p-4">
-          <p className="text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-medium">Pendente Vendas</p>
-          <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-1">{formatCurrency(totalPendenteVendas)}</p>
+          <p className="text-[11px] uppercase tracking-wider text-brand-600 dark:text-brand-400 font-medium">Pendente Vendas</p>
+          <p className="text-lg font-bold text-brand-600 dark:text-brand-400 mt-1">{formatCurrency(totalPendenteVendas)}</p>
         </div>
         <div className="card p-4">
-          <p className="text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-medium">Pendente Suporte</p>
-          <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-1">{formatCurrency(totalPendenteSuporte)}</p>
+          <p className="text-[11px] uppercase tracking-wider text-brand-600 dark:text-brand-400 font-medium">Pendente Suporte</p>
+          <p className="text-lg font-bold text-brand-600 dark:text-brand-400 mt-1">{formatCurrency(totalPendenteSuporte)}</p>
         </div>
       </div>
 
@@ -391,9 +391,9 @@ export const ComissoesModule = () => {
 
       {/* Modal de Lançamento de Comissão */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+        <div className="cr-modal-overlay">
+          <div className="relative w-full max-w-md cr-modal cr-modal-lg">
+            <div className="cr-modal-header">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 Lançar Comissão de {modalData.tipo === 'vendas' ? 'Vendas' : 'Suporte'}
               </h3>
@@ -401,7 +401,7 @@ export const ComissoesModule = () => {
             </div>
 
             <form onSubmit={handleLancarComissao} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 text-xs space-y-1 border border-gray-100 dark:border-gray-800">
                   <p className="text-gray-500">Cliente: <strong className="text-gray-900 dark:text-white">{modalData.clienteNome}</strong></p>
                   {modalData.infoBase && <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">{modalData.infoBase}</p>}
@@ -427,7 +427,7 @@ export const ComissoesModule = () => {
                       ))}
                   </select>
                   {modalData.originalResponsavel && modalData.responsavel !== modalData.originalResponsavel && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                    <p className="text-[11px] text-brand-600 dark:text-brand-400 mt-1">
                       ⚠️ Alterado de "{modalData.originalResponsavel}" (esta mudança ficará registrada na auditoria).
                     </p>
                   )}
@@ -463,7 +463,7 @@ export const ComissoesModule = () => {
               </div>
 
               {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
                 <button type="submit" className={`px-4 py-2 rounded-lg text-xs font-medium text-white shadow-sm transition-colors ${
                   modalData.tipo === 'vendas' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-teal-600 hover:bg-teal-700'

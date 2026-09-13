@@ -375,7 +375,7 @@ export const ClientesModule = () => {
             <option value="Churned">Cancelados</option>
           </select>
           <button onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-700 transition-colors">
             <Plus className="w-3.5 h-3.5" /><span>Novo Cliente</span>
           </button>
         </div>
@@ -491,10 +491,10 @@ export const ClientesModule = () => {
 
       {/* VALIDATION MODAL */}
       {isValidateModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+        <div className="cr-modal-overlay">
+          <div className="relative w-full max-w-lg cr-modal cr-modal-lg">
             {/* Modal Header */}
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+            <div className="cr-modal-header">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Editar Dados do Cliente' : 'Aprovar & Validar Venda'}
               </h3>
@@ -502,7 +502,7 @@ export const ClientesModule = () => {
             </div>
 
             <form onSubmit={handleConfirmValidate} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 {/* Error Banner */}
                 {validateErrors.length > 0 && (
                   <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
@@ -664,7 +664,7 @@ export const ClientesModule = () => {
                       className={getInputCls(hasValError('endereco'))}
                       placeholder="Rua, número, sala/complemento, bairro, cidade - UF"
                     />
-                    <p className="text-[10.5px] text-amber-600 dark:text-amber-400 mt-1 leading-tight flex items-start gap-1">
+                    <p className="text-[10.5px] text-brand-600 dark:text-brand-400 mt-1 leading-tight flex items-start gap-1">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>Endereço da imobiliária ou do corretor autônomo (<strong>não preencher o do sócio</strong>).</span>
                     </p>
@@ -753,7 +753,7 @@ export const ClientesModule = () => {
               </div>
 
               {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button type="button" onClick={() => setIsValidateModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
                   {clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Salvar Alterações' : 'Confirmar & Validar'}
@@ -766,16 +766,16 @@ export const ClientesModule = () => {
 
       {/* ADD MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+        <div className="cr-modal-overlay">
+          <div className="relative w-full max-w-lg cr-modal cr-modal-lg">
             {/* Modal Header */}
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+            <div className="cr-modal-header">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Novo Cliente</h3>
               <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
             <form onSubmit={handleSaveCliente} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 {/* Error Banner */}
                 {addErrors.length > 0 && (
                   <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
@@ -892,9 +892,9 @@ export const ClientesModule = () => {
               </div>
 
               {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-sm">Salvar</button>
               </div>
             </form>
           </div>
@@ -903,10 +903,10 @@ export const ClientesModule = () => {
 
       {/* CHURN MODAL */}
       {isChurnModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-sm max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+        <div className="cr-modal-overlay">
+          <div className="relative w-full max-w-sm cr-modal cr-modal-lg">
             {/* Modal Header */}
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+            <div className="cr-modal-header">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Confirmar Cancelamento</h3>
               <button onClick={() => setIsChurnModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
@@ -918,7 +918,7 @@ export const ClientesModule = () => {
               addAuditLog('Churn de Cliente', `Cliente "${cl?.empresa || cl?.nome}" cancelado em ${churnData.date}`);
               setIsChurnModalOpen(false);
             }} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 <div>
                   <label className="block text-gray-500 dark:text-gray-400 mb-1">
                     Data de Cancelamento <span className="text-red-500 font-bold ml-0.5">*</span>
@@ -928,7 +928,7 @@ export const ClientesModule = () => {
               </div>
 
               {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button type="button" onClick={() => setIsChurnModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">Confirmar Churn</button>
               </div>

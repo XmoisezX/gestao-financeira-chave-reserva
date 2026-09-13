@@ -367,7 +367,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm transition-colors whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 shadow-sm transition-colors whitespace-nowrap"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Novo Lançamento Diário</span>
@@ -378,7 +378,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       <div className="card overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-amber-500" />
+            <BarChart3 className="w-4 h-4 text-brand-500" />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Projeção Mensal Real (Realizado da Operação)</h3>
           </div>
           <span className="text-[11px] text-gray-400 font-medium">
@@ -444,7 +444,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                 <th className="px-2 py-2.5 font-medium min-w-[110px] bg-emerald-50/50 dark:bg-emerald-950/20 font-bold text-emerald-700 dark:text-emerald-300">Rec. Caixa</th>
                 <th className="px-2 py-2.5 font-medium min-w-[90px]">Imp. Caixa (8%)</th>
                 <th className="px-2 py-2.5 font-medium min-w-[110px] bg-violet-50/50 dark:bg-violet-950/20">Res. Caixa</th>
-                <th className="px-2 py-2.5 font-medium min-w-[120px] bg-amber-50/50 dark:bg-amber-950/20 font-bold text-amber-700 dark:text-amber-400">Saldo Caixa Acum.</th>
+                <th className="px-2 py-2.5 font-medium min-w-[120px] bg-brand-50/50 dark:bg-brand-950/20 font-bold text-amber-700 dark:text-amber-400">Saldo Caixa Acum.</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -479,7 +479,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
 
                     {/* 4. Comissões e Bônus */}
                     <td className="px-2 py-2 text-indigo-600 dark:text-indigo-400">{formatCurrency(p.comissaoVendas)}</td>
-                    <td className="px-2 py-2 text-amber-600 dark:text-amber-400">{formatCurrency(p.bonusVendaAnual)}</td>
+                    <td className="px-2 py-2 text-brand-600 dark:text-brand-400">{formatCurrency(p.bonusVendaAnual)}</td>
                     <td className="px-2 py-2 text-teal-600 dark:text-teal-400">{formatCurrency(p.comissaoSuporte)}</td>
 
                     {/* 5. Tráfego */}
@@ -684,7 +684,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
                 lancamentos.map((l) => (
                   <tr key={l.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/60 transition-colors">
                     <td className="px-4 py-2.5 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{formatDateBR(l.data)}</td>
-                    <td className="px-4 py-2.5 text-amber-600 dark:text-amber-400 font-medium">{l.mesReferencia}</td>
+                    <td className="px-4 py-2.5 text-brand-600 dark:text-brand-400 font-medium">{l.mesReferencia}</td>
                     <td className="px-4 py-2.5 text-green-600 dark:text-green-400 font-semibold">+{l.novosClientes}</td>
                     <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">{formatCurrencyPrecise(l.gastoTrafego)}</td>
                     <td className="px-4 py-2.5 text-indigo-600 dark:text-indigo-400">{formatCurrencyPrecise(l.comissaoVendas || l.comissoesPagas || 0)}</td>
@@ -728,7 +728,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
       {/* ===== MODAL DE DETALHES DA OPERAÇÃO / LANÇAMENTO ===== */}
       {selectedLancamento && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/70 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-2xl cr-modal cr-modal-lg animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="shrink-0 p-5 sm:p-6 pb-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start bg-white dark:bg-gray-900 z-10">
               <div>
@@ -827,7 +827,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
               {/* Detalhamento Financeiro Completo da Linha */}
               <div>
                 <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-amber-500" />
+                  <DollarSign className="w-3.5 h-3.5 text-brand-500" />
                   <span>Discriminação Financeira Completa do Lançamento</span>
                 </h4>
                 <div className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl">
@@ -892,7 +892,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
             </div>
 
             {/* Pinned Modal Actions */}
-            <div className="shrink-0 p-4 sm:p-6 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50/70 dark:bg-gray-900/90 z-10">
+            <div className="shrink-0 p-4 sm:p-6 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between bg-surface z-10">
               <button
                 type="button"
                 onClick={() => {
@@ -911,7 +911,7 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
               <button
                 type="button"
                 onClick={() => setSelectedLancamento(null)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-sm"
               >
                 Fechar
               </button>
@@ -922,16 +922,16 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
 
       {/* MODAL NOVO LANÇAMENTO */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
-          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+        <div className="cr-modal-overlay">
+          <div className="relative w-full max-w-lg cr-modal cr-modal-lg">
             {/* Modal Header */}
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+            <div className="cr-modal-header">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Novo Lançamento Diário</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
             <form onSubmit={handleSaveLancamento} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-gray-500 dark:text-gray-400 mb-1">
@@ -974,9 +974,9 @@ export const OperacaoDiariaModule = ({ isModalOpen, setIsModalOpen }) => {
               </div>
 
               {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+              <div className="cr-modal-footer">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar Lançamento</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-sm">Salvar Lançamento</button>
               </div>
             </form>
           </div>
