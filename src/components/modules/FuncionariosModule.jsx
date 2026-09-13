@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Users, Plus, Edit2, Trash2, Search, Key, Mail, Shield, Eye, EyeOff, DollarSign, Calendar, Clock } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, Search, Key, Mail, Shield, Eye, EyeOff, Calendar, Clock, UserCheck } from 'lucide-react';
 
 export const FuncionariosModule = () => {
   const { funcionarios, setFuncionarios, saveFuncionario, deleteFuncionario, addAuditLog, user } = useApp();
@@ -30,9 +30,7 @@ export const FuncionariosModule = () => {
     (f.cpf || '').includes(searchQuery)
   );
 
-  const totalCusto = (funcionarios || [])
-    .filter(f => f.status === 'Ativo')
-    .reduce((acc, f) => acc + (Number(f.custoMensal) || 0), 0);
+  const totalAtivos = (funcionarios || []).filter(f => f.status === 'Ativo').length;
 
   const cargosDisponiveis = [
     'Administrador',
@@ -186,13 +184,13 @@ export const FuncionariosModule = () => {
 
         <div className="cr-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Folha Fixa Mensal</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Usuários Ativos</span>
+            <UserCheck className="w-4 h-4 text-emerald-500" />
           </div>
           <p className="text-2xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">
-            R$ {totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            {totalAtivos}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Soma de salários e pró-labores</p>
+          <p className="text-xs text-gray-400 mt-1">Com acesso ativo à plataforma</p>
         </div>
 
         <div className="cr-card p-4">
@@ -230,8 +228,7 @@ export const FuncionariosModule = () => {
                 <th className="px-4 py-3">CPF & Chave Pix</th>
                 <th className="px-4 py-3">Cargo / Função</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Salário / Pró-labore</th>
-                <th className="px-4 py-3">Período de Vigência</th>
+                <th className="px-4 py-3">Data de Entrada</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
@@ -303,25 +300,17 @@ export const FuncionariosModule = () => {
                         {func.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(func.custoMensal) || 0)}
-                      <span className="text-[10px] text-gray-400 font-normal block">por mês</span>
-                    </td>
                     <td className="px-4 py-3">
                       <div className="space-y-0.5">
                         <p className="text-[11px] text-gray-700 dark:text-gray-300 flex items-center gap-1">
                           <Clock className="w-3 h-3 text-gray-400" />
-                          <span>Início: <strong>{formatDateBR(func.dataInicio) || '01/09/2026'}</strong></span>
+                          <span>Desde: <strong>{formatDateBR(func.dataInicio) || '01/09/2026'}</strong></span>
                         </p>
-                        <p className="text-[11px]">
-                          {func.dataFim ? (
-                            <span className="text-amber-700 dark:text-amber-400">Fim: <strong>{formatDateBR(func.dataFim)}</strong></span>
-                          ) : (
-                            <span className="inline-block px-1.5 py-0.2 rounded text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium">
-                              Tempo Indeterminado
-                            </span>
-                          )}
-                        </p>
+                        {func.dataFim && (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                            Até: <strong>{formatDateBR(func.dataFim)}</strong>
+                          </p>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -524,32 +513,16 @@ export const FuncionariosModule = () => {
                   </div>
                 </div>
 
-                {/* Remuneração & Vigência */}
+                {/* Período de Atividade no Sistema */}
                 <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-xl space-y-3">
                   <p className="text-[11px] font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
-                    <DollarSign className="w-3.5 h-3.5" style={{ color: 'var(--brand-500)' }} /> Remuneração Mensal & Período de Vigência
+                    <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Período de Atividade no Sistema
                   </p>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Total Pago por Mês (Salário / Pró-labore em R$) <span className="text-red-500 font-bold ml-0.5">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={formData.custoMensal}
-                      onChange={e => setFormData({ ...formData, custoMensal: e.target.value })}
-                      className={inputCls}
-                      placeholder="0.00"
-                    />
-                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Data de Início <span className="text-red-500 font-bold ml-0.5">*</span>
+                        Data de Início / Admissão <span className="text-red-500 font-bold ml-0.5">*</span>
                       </label>
                       <input
                         type="date"
@@ -561,7 +534,7 @@ export const FuncionariosModule = () => {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Data de Fim (Opcional)
+                        Data de Saída (Opcional)
                       </label>
                       <input
                         type="date"
@@ -571,9 +544,6 @@ export const FuncionariosModule = () => {
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-400">
-                    ℹ️ Se a <strong>Data de Fim</strong> for deixada em branco, a remuneração continuará por tempo indeterminado. Na aba <strong>Operação Diária</strong>, o custo será contabilizado apenas nos meses dentro deste período.
-                  </p>
                 </div>
               </div>
 
