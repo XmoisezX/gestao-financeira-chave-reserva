@@ -404,213 +404,217 @@ export const ClientesModule = () => {
 
       {/* VALIDATION MODAL */}
       {isValidateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+            {/* Modal Header */}
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Editar Dados do Cliente' : 'Aprovar & Validar Venda'}
               </h3>
-              <button onClick={() => setIsValidateModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
+              <button onClick={() => setIsValidateModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
-            {/* Error Banner */}
-            {validateErrors.length > 0 && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
-                <div className="flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-                  <div className="space-y-1.5 flex-1">
-                    <p className="font-semibold text-red-800 dark:text-red-200">
-                      Por favor, preencha todos os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {validateErrors.map(err => (
-                        <span
-                          key={err.field}
-                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
-                        >
-                          • {err.label}
-                        </span>
-                      ))}
+            <form onSubmit={handleConfirmValidate} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                {/* Error Banner */}
+                {validateErrors.length > 0 && (
+                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <p className="font-semibold text-red-800 dark:text-red-200">
+                          Por favor, preencha todos os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {validateErrors.map(err => (
+                            <span
+                              key={err.field}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
+                            >
+                              • {err.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-xs text-gray-500 bg-yellow-50 dark:bg-yellow-900/20 p-2.5 rounded-lg border border-yellow-200 dark:border-yellow-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                  <span>{clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Edite os dados do cliente.' : 'Complete os dados para aprovar a venda.'}</span>
+                  <div className="font-bold text-gray-900 dark:text-white text-right">
+                    {valData.modalidade === 'anualVista' ? (
+                      <span>À Vista: R$ {(Number(valData.mrr) * 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <span className="text-[11px] font-normal text-gray-500">(1ª Parcela / MRR: R$ {Number(valData.mrr).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</span></span>
+                    ) : (
+                      <span>Mensal: R$ {Number(valData.mrr).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      CPF / CNPJ <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      required
+                      value={valData.cpfCnpj}
+                      onChange={e => { clearValError('cpfCnpj'); setValData({ ...valData, cpfCnpj: e.target.value }); }}
+                      className={getInputCls(hasValError('cpfCnpj'))}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">Desconto (%) e Duração</label>
+                    <div className="flex gap-2">
+                      <input type="number" min="0" max="100" value={valData.desconto} onChange={handleDescontoChange} className={inputCls} placeholder="%" />
+                      <select value={valData.duracaoDesconto} onChange={e => setValData({ ...valData, duracaoDesconto: e.target.value })} className={inputCls}>
+                        <option value="1 mes">1 mês</option>
+                        <option value="3 meses">3 meses</option>
+                        <option value="anual">Anual</option>
+                      </select>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <div className="text-xs text-gray-500 mb-2 bg-yellow-50 dark:bg-yellow-900/20 p-2.5 rounded-lg border border-yellow-200 dark:border-yellow-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-              <span>{clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Edite os dados do cliente.' : 'Complete os dados para aprovar a venda.'}</span>
-              <div className="font-bold text-gray-900 dark:text-white text-right">
-                {valData.modalidade === 'anualVista' ? (
-                  <span>À Vista: R$ {(Number(valData.mrr) * 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <span className="text-[11px] font-normal text-gray-500">(1ª Parcela / MRR: R$ {Number(valData.mrr).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</span></span>
-                ) : (
-                  <span>Mensal: R$ {Number(valData.mrr).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês</span>
-                )}
-              </div>
-            </div>
-
-            <form onSubmit={handleConfirmValidate} noValidate className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    CPF / CNPJ <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <input
-                    required
-                    value={valData.cpfCnpj}
-                    onChange={e => { clearValError('cpfCnpj'); setValData({ ...valData, cpfCnpj: e.target.value }); }}
-                    className={getInputCls(hasValError('cpfCnpj'))}
-                    placeholder="000.000.000-00"
-                  />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Plano Escolhido <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select required value={valData.plano} onChange={handlePlanoChange} className={getInputCls(hasValError('plano'))}>
+                      <option value="">Selecione um plano...</option>
+                      {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Módulo Aluguel <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select required value={valData.moduloAluguel} onChange={handleAluguelChange} className={getInputCls(hasValError('moduloAluguel'))}>
+                      <option value="Não">Não</option>
+                      <option value="Sim">Sim</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Desconto (%) e Duração</label>
-                  <div className="flex gap-2">
-                    <input type="number" min="0" max="100" value={valData.desconto} onChange={handleDescontoChange} className={inputCls} placeholder="%" />
-                    <select value={valData.duracaoDesconto} onChange={e => setValData({ ...valData, duracaoDesconto: e.target.value })} className={inputCls}>
-                      <option value="1 mes">1 mês</option>
-                      <option value="3 meses">3 meses</option>
-                      <option value="anual">Anual</option>
+
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-gray-500 dark:text-gray-400 font-medium">Pacotes Adicionais</label>
+                    <button type="button" onClick={handleAddPacote} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                      <Plus className="w-3 h-3" /> Adicionar Pacote
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {(!valData.pacotesSelecionados || valData.pacotesSelecionados.length === 0) && (
+                      <p className="text-xs text-gray-400 italic">Nenhum pacote adicional.</p>
+                    )}
+                    {(valData.pacotesSelecionados || []).map((item, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <select value={item.pacote} onChange={(e) => handleUpdatePacote(idx, 'pacote', e.target.value)} className={inputCls + " flex-1"}>
+                          {pacotes.map(p => <option key={p.pacote} value={p.pacote}>{p.pacote}</option>)}
+                        </select>
+                        <input type="number" min="1" required value={item.qtd} onChange={(e) => handleUpdatePacote(idx, 'qtd', e.target.value)} className={inputCls} placeholder="Qtd" style={{ width: '80px' }} />
+                        <button type="button" onClick={() => handleRemovePacote(idx)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Método de Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select
+                      required
+                      value={valData.metodoPagamento}
+                      onChange={e => { clearValError('metodoPagamento'); setValData({ ...valData, metodoPagamento: e.target.value }); }}
+                      className={getInputCls(hasValError('metodoPagamento'))}
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="Pix">Pix</option>
+                      <option value="Boleto Bancário">Boleto</option>
+                      <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
+                      <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Modalidade de Venda <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select required value={valData.modalidade} onChange={handleModalidadeChange} className={getInputCls(hasValError('modalidade'))}>
+                      <option value="mensal">Mensal (Recorrente)</option>
+                      <option value="anualVista">Anual (À Vista — com desconto)</option>
+                      <option value="anualParcelado">Anual (Parcelado Mensal — com desconto)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={valData.dataEntrada}
+                      onChange={e => { clearValError('dataEntrada'); setValData({ ...valData, dataEntrada: e.target.value }); }}
+                      className={getInputCls(hasValError('dataEntrada'))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Endereço Completo <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      required
+                      value={valData.endereco}
+                      onChange={e => { clearValError('endereco'); setValData({ ...valData, endereco: e.target.value }); }}
+                      className={getInputCls(hasValError('endereco'))}
+                      placeholder="Rua, número, cidade..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Vendedor <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={getInputCls(hasValError('vendedorResponsavel'))}>
+                      <option value="">Selecione...</option>
+                      {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
+                        <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Suporte <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select
+                      required
+                      value={valData.suporteResponsavel}
+                      onChange={e => { clearValError('suporteResponsavel'); setValData({ ...valData, suporteResponsavel: e.target.value }); }}
+                      className={getInputCls(hasValError('suporteResponsavel'))}
+                    >
+                      <option value="">Selecione...</option>
+                      {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Administrador' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')).map(f => (
+                        <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                      ))}
                     </select>
                   </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Plano Escolhido <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select required value={valData.plano} onChange={handlePlanoChange} className={getInputCls(hasValError('plano'))}>
-                    <option value="">Selecione um plano...</option>
-                    {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Módulo Aluguel <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select required value={valData.moduloAluguel} onChange={handleAluguelChange} className={getInputCls(hasValError('moduloAluguel'))}>
-                    <option value="Não">Não</option>
-                    <option value="Sim">Sim</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-gray-500 dark:text-gray-400 font-medium">Pacotes Adicionais</label>
-                  <button type="button" onClick={handleAddPacote} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
-                    <Plus className="w-3 h-3" /> Adicionar Pacote
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {(!valData.pacotesSelecionados || valData.pacotesSelecionados.length === 0) && (
-                    <p className="text-xs text-gray-400 italic">Nenhum pacote adicional.</p>
-                  )}
-                  {(valData.pacotesSelecionados || []).map((item, idx) => (
-                    <div key={idx} className="flex gap-2 items-center">
-                      <select value={item.pacote} onChange={(e) => handleUpdatePacote(idx, 'pacote', e.target.value)} className={inputCls + " flex-1"}>
-                        {pacotes.map(p => <option key={p.pacote} value={p.pacote}>{p.pacote}</option>)}
-                      </select>
-                      <input type="number" min="1" required value={item.qtd} onChange={(e) => handleUpdatePacote(idx, 'qtd', e.target.value)} className={inputCls} placeholder="Qtd" style={{ width: '80px' }} />
-                      <button type="button" onClick={() => handleRemovePacote(idx)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Método de Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select
-                    required
-                    value={valData.metodoPagamento}
-                    onChange={e => { clearValError('metodoPagamento'); setValData({ ...valData, metodoPagamento: e.target.value }); }}
-                    className={getInputCls(hasValError('metodoPagamento'))}
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Boleto Bancário">Boleto</option>
-                    <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
-                    <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Modalidade de Venda <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select required value={valData.modalidade} onChange={handleModalidadeChange} className={getInputCls(hasValError('modalidade'))}>
-                    <option value="mensal">Mensal (Recorrente)</option>
-                    <option value="anualVista">Anual (À Vista — com desconto)</option>
-                    <option value="anualParcelado">Anual (Parcelado Mensal — com desconto)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={valData.dataEntrada}
-                    onChange={e => { clearValError('dataEntrada'); setValData({ ...valData, dataEntrada: e.target.value }); }}
-                    className={getInputCls(hasValError('dataEntrada'))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Endereço Completo <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <input
-                    required
-                    value={valData.endereco}
-                    onChange={e => { clearValError('endereco'); setValData({ ...valData, endereco: e.target.value }); }}
-                    className={getInputCls(hasValError('endereco'))}
-                    placeholder="Rua, número, cidade..."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Vendedor <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select required value={valData.vendedorResponsavel} onChange={handleVendedorChange} className={getInputCls(hasValError('vendedorResponsavel'))}>
-                    <option value="">Selecione...</option>
-                    {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
-                      <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Suporte <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select
-                    required
-                    value={valData.suporteResponsavel}
-                    onChange={e => { clearValError('suporteResponsavel'); setValData({ ...valData, suporteResponsavel: e.target.value }); }}
-                    className={getInputCls(hasValError('suporteResponsavel'))}
-                  >
-                    <option value="">Selecione...</option>
-                    {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Suporte' || f.cargo === 'Administrador' || f.cargo === 'Vendedor e Suporte' || f.cargo === 'Apoio Técnico')).map(f => (
-                      <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <button type="button" onClick={() => setIsValidateModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
-                <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsValidateModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
                   {clientes.find(c => c.id === selectedPendingId)?.status !== 'Pendente' ? 'Salvar Alterações' : 'Confirmar & Validar'}
                 </button>
               </div>
@@ -621,137 +625,149 @@ export const ClientesModule = () => {
 
       {/* ADD MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+            {/* Modal Header */}
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Novo Cliente</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
 
-            {/* Error Banner */}
-            {addErrors.length > 0 && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
-                <div className="flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-                  <div className="space-y-1.5 flex-1">
-                    <p className="font-semibold text-red-800 dark:text-red-200">
-                      Por favor, preencha os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {addErrors.map(err => (
-                        <span
-                          key={err.field}
-                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
-                        >
-                          • {err.label}
-                        </span>
-                      ))}
+            <form onSubmit={handleSaveCliente} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                {/* Error Banner */}
+                {addErrors.length > 0 && (
+                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200 shadow-sm">
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <p className="font-semibold text-red-800 dark:text-red-200">
+                          Por favor, preencha os campos obrigatórios (<span className="text-red-500 font-bold">*</span>):
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {addErrors.map(err => (
+                            <span
+                              key={err.field}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-red-100/90 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-[11px] font-medium border border-red-200/80 dark:border-red-800"
+                            >
+                              • {err.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Nome <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input
+                    required
+                    value={formData.nome}
+                    onChange={e => { clearAddError('nome'); setFormData({ ...formData, nome: e.target.value }); }}
+                    className={getInputCls(hasAddError('nome'))}
+                    placeholder="Nome do cliente ou responsável"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Empresa</label><input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} placeholder="Nome da imobiliária / empresa" /></div>
+                  <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Telefone</label><input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(00) 00000-0000" /></div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className="block text-gray-500 dark:text-gray-400 mb-1">E-mail</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="cliente@email.com" /></div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.dataEntrada}
+                      onChange={e => { clearAddError('dataEntrada'); setFormData({ ...formData, dataEntrada: e.target.value }); }}
+                      className={getInputCls(hasAddError('dataEntrada'))}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Plano <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select
+                      value={formData.plano}
+                      onChange={e => {
+                        clearAddError('plano');
+                        const p = planos.find(x => x.plano === e.target.value);
+                        setFormData({ ...formData, plano: e.target.value, mrr: p ? p.mensal : 350 });
+                      }}
+                      className={getInputCls(hasAddError('plano'))}
+                    >
+                      {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                      Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <select
+                      value={formData.metodoPagamento}
+                      onChange={e => {
+                        clearAddError('metodoPagamento');
+                        setFormData({ ...formData, metodoPagamento: e.target.value });
+                      }}
+                      className={getInputCls(hasAddError('metodoPagamento'))}
+                    >
+                      <option value="Pix">Pix</option>
+                      <option value="Boleto Bancário">Boleto</option>
+                      <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
+                      <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
+                    </select>
                   </div>
                 </div>
               </div>
-            )}
 
-            <form onSubmit={handleSaveCliente} noValidate className="space-y-3 text-xs">
-              <div>
-                <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                  Nome <span className="text-red-500 font-bold ml-0.5">*</span>
-                </label>
-                <input
-                  required
-                  value={formData.nome}
-                  onChange={e => { clearAddError('nome'); setFormData({ ...formData, nome: e.target.value }); }}
-                  className={getInputCls(hasAddError('nome'))}
-                  placeholder="Nome do cliente ou responsável"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Empresa</label><input value={formData.empresa} onChange={e => setFormData({ ...formData, empresa: e.target.value })} className={inputCls} placeholder="Nome da imobiliária / empresa" /></div>
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">Telefone</label><input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(00) 00000-0000" /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-gray-500 dark:text-gray-400 mb-1">E-mail</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="cliente@email.com" /></div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Data de Entrada <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dataEntrada}
-                    onChange={e => { clearAddError('dataEntrada'); setFormData({ ...formData, dataEntrada: e.target.value }); }}
-                    className={getInputCls(hasAddError('dataEntrada'))}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Plano <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select
-                    value={formData.plano}
-                    onChange={e => {
-                      clearAddError('plano');
-                      const p = planos.find(x => x.plano === e.target.value);
-                      setFormData({ ...formData, plano: e.target.value, mrr: p ? p.mensal : 350 });
-                    }}
-                    className={getInputCls(hasAddError('plano'))}
-                  >
-                    {planos.map(p => <option key={p.plano} value={p.plano}>{p.plano}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                    Pagamento <span className="text-red-500 font-bold ml-0.5">*</span>
-                  </label>
-                  <select
-                    value={formData.metodoPagamento}
-                    onChange={e => {
-                      clearAddError('metodoPagamento');
-                      setFormData({ ...formData, metodoPagamento: e.target.value });
-                    }}
-                    className={getInputCls(hasAddError('metodoPagamento'))}
-                  >
-                    <option value="Pix">Pix</option>
-                    <option value="Boleto Bancário">Boleto</option>
-                    <option value="Cartão de Crédito (À Vista)">Cartão à Vista</option>
-                    <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
-                <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900">Salvar</button>
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
       {/* CHURN MODAL */}
       {isChurnModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-xl">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center">
+          <div className="relative w-full max-w-sm max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden">
+            {/* Modal Header */}
+            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Confirmar Cancelamento</h3>
-              <button onClick={() => setIsChurnModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg">×</button>
+              <button onClick={() => setIsChurnModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
             </div>
+            
             <form onSubmit={(e) => {
               e.preventDefault();
               const cl = clientes.find(c => c.id === churnData.id);
               churnCliente(churnData.id, churnData.date);
               addAuditLog('Churn de Cliente', `Cliente "${cl?.empresa || cl?.nome}" cancelado em ${churnData.date}`);
               setIsChurnModalOpen(false);
-            }} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-gray-500 dark:text-gray-400 mb-1">
-                  Data de Cancelamento <span className="text-red-500 font-bold ml-0.5">*</span>
-                </label>
-                <input type="date" required value={churnData.date} onChange={e => setChurnData({ ...churnData, date: e.target.value })} className={inputCls} />
+            }} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+                <div>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">
+                    Data de Cancelamento <span className="text-red-500 font-bold ml-0.5">*</span>
+                  </label>
+                  <input type="date" required value={churnData.date} onChange={e => setChurnData({ ...churnData, date: e.target.value })} className={inputCls} />
+                </div>
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <button type="button" onClick={() => setIsChurnModalOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">Cancelar</button>
-                <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm">Confirmar Churn</button>
+
+              {/* Pinned Modal Footer */}
+              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
+                <button type="button" onClick={() => setIsChurnModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">Confirmar Churn</button>
               </div>
             </form>
           </div>
