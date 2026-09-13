@@ -765,6 +765,8 @@ export const initialClientes = [
     mrr: 350,
     modulosAdicionais: ["Módulo de Alugueis"],
     metodoPagamento: "Pix",
+    vendedorResponsavel: "Moisés Torres",
+    suporteResponsavel: "Equipe Suporte",
     status: "Ativo",
     dataEntrada: "2026-08-01",
     canalOrigem: "Microinfluenciadores"
@@ -779,6 +781,8 @@ export const initialClientes = [
     mrr: 600,
     modulosAdicionais: ["Usuários adicionais", "Assinatura Digital"],
     metodoPagamento: "Cartão de Crédito (À Vista)",
+    vendedorResponsavel: "Moisés Torres",
+    suporteResponsavel: "Equipe Suporte",
     status: "Ativo",
     dataEntrada: "2026-07-15",
     canalOrigem: "Tráfego Pago"
@@ -793,6 +797,8 @@ export const initialClientes = [
     mrr: 120,
     modulosAdicionais: [],
     metodoPagamento: "Boleto Bancário",
+    vendedorResponsavel: "Moisés Torres",
+    suporteResponsavel: "Equipe Suporte",
     status: "Ativo",
     dataEntrada: "2026-07-20",
     canalOrigem: "Listas Frias"
@@ -807,6 +813,8 @@ export const initialClientes = [
     mrr: 220,
     modulosAdicionais: [],
     metodoPagamento: "Pix",
+    vendedorResponsavel: "Moisés Torres",
+    suporteResponsavel: "Equipe Suporte",
     status: "Churned",
     dataEntrada: "2026-06-10",
     dataCancelamento: "2026-08-05",

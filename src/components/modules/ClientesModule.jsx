@@ -42,6 +42,27 @@ export const ClientesModule = () => {
   const [isChurnModalOpen, setIsChurnModalOpen] = useState(false);
   const [churnData, setChurnData] = useState({ id: null, date: new Date().toISOString().split('T')[0] });
 
+  const getSellerInfo = (sellerName) => {
+    if (!sellerName) return { name: '—', photoUrl: null, initial: '?' };
+    const norm = sellerName.toLowerCase().trim();
+    if (user && ((user.name && user.name.toLowerCase().trim() === norm) || (user.email && user.email.toLowerCase().trim() === norm))) {
+      return {
+        name: user.name || sellerName,
+        photoUrl: user.photoUrl || null,
+        initial: (user.name || sellerName).charAt(0).toUpperCase()
+      };
+    }
+    const found = (funcionarios || []).find(f => 
+      (f.nome && f.nome.toLowerCase().trim() === norm) || 
+      (f.email && f.email.toLowerCase().trim() === norm)
+    );
+    return {
+      name: found?.nome || sellerName,
+      photoUrl: found?.photoUrl || null,
+      initial: (found?.nome || sellerName).charAt(0).toUpperCase()
+    };
+  };
+
   const accessibleClientes = useMemo(() => {
     return (clientes || []).filter(c => {
       if (isAdmin || !user) return true;
@@ -77,7 +98,18 @@ export const ClientesModule = () => {
 
   const handleOpenAddModal = () => {
     setAddErrors([]);
-    setFormData({ nome: '', empresa: '', email: '', telefone: '', plano: planos[0]?.plano || 'Imobiliária Pro', mrr: planos[0]?.mensal || 350, metodoPagamento: 'Pix', canalOrigem: 'Tráfego Pago', dataEntrada: new Date().toISOString().split('T')[0] });
+    setFormData({
+      nome: '',
+      empresa: '',
+      email: '',
+      telefone: '',
+      plano: planos[0]?.plano || 'Imobiliária Pro',
+      mrr: planos[0]?.mensal || 350,
+      metodoPagamento: 'Pix',
+      canalOrigem: 'Tráfego Pago',
+      vendedorResponsavel: user?.name || '',
+      dataEntrada: new Date().toISOString().split('T')[0]
+    });
     setIsAddModalOpen(true);
   };
 
@@ -335,6 +367,7 @@ export const ClientesModule = () => {
           <thead className="text-[11px] uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
             <tr>
               <th className="px-4 py-2.5 font-medium">Cliente</th>
+              <th className="px-4 py-2.5 font-medium">Vendedor</th>
               <th className="px-4 py-2.5 font-medium">Plano</th>
               <th className="px-4 py-2.5 font-medium">MRR</th>
               <th className="px-4 py-2.5 font-medium">Pagamento</th>
@@ -350,6 +383,26 @@ export const ClientesModule = () => {
                 <td className="px-4 py-2.5">
                   <p className="font-medium text-gray-900 dark:text-white">{c.nome}</p>
                   <p className="text-[10px] text-gray-400">{c.empresa}</p>
+                </td>
+                <td className="px-4 py-2.5">
+                  {(() => {
+                    if (!c.vendedorResponsavel) return <span className="text-gray-400">—</span>;
+                    const seller = getSellerInfo(c.vendedorResponsavel);
+                    return (
+                      <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        {seller.photoUrl ? (
+                          <img src={seller.photoUrl} alt={seller.name} className="w-5 h-5 rounded-full object-cover shrink-0 border border-indigo-200 dark:border-indigo-800" onError={e => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {seller.initial}
+                          </div>
+                        )}
+                        <span className="font-medium text-gray-800 dark:text-gray-200 text-xs">
+                          {seller.name}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">{c.plano}</td>
                 <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">R$ {Number(c.mrr).toLocaleString('pt-BR')}</td>
@@ -718,6 +771,28 @@ export const ClientesModule = () => {
                       <option value="Cartão de Crédito (Parcelado)">Cartão Parcelado</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 dark:text-gray-400 mb-1">Vendedor Responsável</label>
+                  {isAdmin ? (
+                    <select
+                      value={formData.vendedorResponsavel}
+                      onChange={e => setFormData({ ...formData, vendedorResponsavel: e.target.value })}
+                      className={inputCls}
+                    >
+                      <option value="">Selecione o vendedor...</option>
+                      {funcionarios.filter(f => f.status === 'Ativo' && (f.cargo === 'Vendedor' || f.cargo === 'Administrador' || f.cargo === 'Parceiro' || f.cargo === 'Vendedor e Suporte')).map(f => (
+                        <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      disabled
+                      value={user?.name || 'Vendedor'}
+                      className={`${inputCls} bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed`}
+                    />
+                  )}
                 </div>
               </div>
 

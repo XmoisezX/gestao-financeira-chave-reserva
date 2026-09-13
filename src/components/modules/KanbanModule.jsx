@@ -50,6 +50,27 @@ export const KanbanModule = () => {
   });
   const [convertFormData, setConvertFormData] = useState({ plano: 'Imobiliária Pro', mrr: 350, metodoPagamento: 'Pix', modulosAdicionais: [] });
 
+  const getSellerInfo = (sellerName) => {
+    if (!sellerName) return { name: '—', photoUrl: null, initial: '?' };
+    const norm = sellerName.toLowerCase().trim();
+    if (user && ((user.name && user.name.toLowerCase().trim() === norm) || (user.email && user.email.toLowerCase().trim() === norm))) {
+      return {
+        name: user.name || sellerName,
+        photoUrl: user.photoUrl || null,
+        initial: (user.name || sellerName).charAt(0).toUpperCase()
+      };
+    }
+    const found = (funcionarios || []).find(f => 
+      (f.nome && f.nome.toLowerCase().trim() === norm) || 
+      (f.email && f.email.toLowerCase().trim() === norm)
+    );
+    return {
+      name: found?.nome || sellerName,
+      photoUrl: found?.photoUrl || null,
+      initial: (found?.nome || sellerName).charAt(0).toUpperCase()
+    };
+  };
+
   const filteredLeads = leads.filter(l => {
     // Access control:
     // Non-admin sellers can ONLY view leads they created or are assigned to
@@ -337,11 +358,21 @@ export const KanbanModule = () => {
                           {/* Channel + Seller + Date */}
                           <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400 gap-1">
                             <span className="truncate">{channelIcon} {lead.canal}</span>
-                            {(lead.vendedorResponsavel || lead.criadoPor) && (
-                              <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium truncate max-w-[100px]" title={`Vendedor: ${lead.vendedorResponsavel || lead.criadoPor}`}>
-                                👤 {lead.vendedorResponsavel || lead.criadoPor}
-                              </span>
-                            )}
+                            {(lead.vendedorResponsavel || lead.criadoPor) && (() => {
+                              const seller = getSellerInfo(lead.vendedorResponsavel || lead.criadoPor);
+                              return (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-medium max-w-[125px] truncate border border-indigo-100 dark:border-indigo-900/40" title={`Vendedor: ${seller.name}`}>
+                                  {seller.photoUrl ? (
+                                    <img src={seller.photoUrl} alt={seller.name} className="w-3.5 h-3.5 rounded-full object-cover shrink-0 border border-indigo-200 dark:border-indigo-800" onError={e => { e.target.style.display = 'none'; }} />
+                                  ) : (
+                                    <span className="w-3.5 h-3.5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 text-[8px] font-bold flex items-center justify-center shrink-0">
+                                      {seller.initial}
+                                    </span>
+                                  )}
+                                  <span className="truncate">{seller.name}</span>
+                                </span>
+                              );
+                            })()}
                             <span className="shrink-0 font-medium">{formatDateBR(lead.dataCriacao)}</span>
                           </div>
                         </div>
@@ -465,9 +496,24 @@ export const KanbanModule = () => {
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{lead.empresa}</td>
                     <td className="px-4 py-3">
-                      <span className="text-indigo-600 dark:text-indigo-400 font-medium">
-                        {lead.vendedorResponsavel || lead.criadoPor || '—'}
-                      </span>
+                      {(() => {
+                        if (!lead.vendedorResponsavel && !lead.criadoPor) return <span className="text-gray-400">—</span>;
+                        const seller = getSellerInfo(lead.vendedorResponsavel || lead.criadoPor);
+                        return (
+                          <div className="inline-flex items-center gap-2 whitespace-nowrap">
+                            {seller.photoUrl ? (
+                              <img src={seller.photoUrl} alt={seller.name} className="w-5 h-5 rounded-full object-cover shrink-0 border border-indigo-200 dark:border-indigo-800" onError={e => { e.target.style.display = 'none'; }} />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {seller.initial}
+                              </div>
+                            )}
+                            <span className="font-medium text-gray-800 dark:text-gray-200 text-xs">
+                              {seller.name}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${planColor}`}>{lead.planoInteresse}</span>
