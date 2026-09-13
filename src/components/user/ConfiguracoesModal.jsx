@@ -51,61 +51,73 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center" onClick={onClose}>
-      <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl my-auto overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div className="cr-modal-overlay" onClick={onClose}>
+      <div className="cr-modal cr-modal-md" onClick={e => e.stopPropagation()}>
         
-        {/* Modal Header */}
-        <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center z-10 bg-white dark:bg-gray-900">
+        {/* Header */}
+        <div className="cr-modal-header">
           <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <User className="w-5 h-5 text-amber-500" />
+            <h3 className="text-[15px] font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <div className="cr-kpi-icon w-8 h-8" style={{ background: 'var(--brand-50)' }}>
+                <User className="w-4 h-4" style={{ color: 'var(--brand-600)' }} />
+              </div>
               Configurações de Perfil
             </h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">
+            <p className="text-[12px] mt-1 ml-10" style={{ color: 'var(--text-tertiary)' }}>
               Personalize seu nome e foto de perfil
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors text-lg"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-100)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
-            ×
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <form onSubmit={handleSave} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* Scrollable Modal Body */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
+          {/* Body */}
+          <div className="cr-modal-body space-y-5 text-xs">
             {savedSuccess && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-xs flex items-center gap-2 font-medium">
+              <div className="p-3 rounded-lg flex items-center gap-2 font-medium text-xs animate-cr-scaleIn"
+                style={{ background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(5,150,105,0.2)' }}
+              >
                 <Check className="w-4 h-4" /> Alterações salvas com sucesso!
               </div>
             )}
 
-            {/* Photo Upload Section */}
-            <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800">
+            {/* Photo Upload */}
+            <div
+              className="flex items-center gap-4 p-4 rounded-lg"
+              style={{ background: 'var(--neutral-50)', border: '1px solid var(--border-subtle)' }}
+            >
               <div className="relative shrink-0">
                 {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt={name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-amber-500 shadow-sm"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
+                  <div className="cr-avatar-ring">
+                    <img
+                      src={photoUrl}
+                      alt={name}
+                      className="w-14 h-14 rounded-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-extrabold text-lg flex items-center justify-center border-2 border-amber-400 shadow-sm">
+                  <div
+                    className="w-16 h-16 rounded-full font-extrabold text-lg flex items-center justify-center"
+                    style={{ background: 'var(--brand-100)', color: 'var(--brand-700)', border: '2px solid var(--brand-300)' }}
+                  >
                     {name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'MT'}
                   </div>
                 )}
               </div>
 
               <div className="flex-1 min-w-0 space-y-2">
-                <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300">
-                  Foto de Perfil
-                </label>
+                <label className="cr-label">Foto de Perfil</label>
 
-                {/* Hidden file input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -118,10 +130,10 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-xs hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm flex items-center gap-1.5"
+                    className="cr-btn cr-btn-primary py-1.5 text-xs"
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    <span>Fazer Upload de Foto</span>
+                    <span>Fazer Upload</span>
                   </button>
 
                   {photoUrl && (
@@ -136,35 +148,33 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
                   )}
                 </div>
 
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                   Formatos aceitos: JPG, PNG, WEBP (Máx: 5MB)
                 </p>
               </div>
             </div>
 
-            {/* Name Field */}
+            {/* Name */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-                Nome Completo *
-              </label>
+              <label className="cr-label">Nome Completo *</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className="cr-input"
                 placeholder="Ex: Moisés Torres"
               />
             </div>
 
-            {/* LOCKED Role Field */}
+            {/* Locked Role */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-gray-400" />
-                  Cargo / Função (Bloqueado)
+                <label className="cr-label mb-0 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+                  Cargo / Função
                 </label>
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Definido pela Administração</span>
+                <span className="cr-badge cr-badge-neutral text-[10px]">Bloqueado</span>
               </div>
               <div className="relative">
                 <input
@@ -172,24 +182,25 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
                   disabled
                   readOnly
                   value={user.role || 'Colaborador'}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs cursor-not-allowed select-none font-medium"
+                  className="cr-input cursor-not-allowed opacity-60"
+                  style={{ background: 'var(--neutral-100)' }}
                 />
-                <Lock className="w-4 h-4 text-gray-400 absolute right-3 top-2.5" />
+                <Lock className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
               </div>
-              <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-gray-400 shrink-0" />
+              <p className="text-[10px] mt-1.5 flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
+                <AlertCircle className="w-3 h-3 shrink-0" />
                 O cargo é designado pelo administrador no painel de equipe e não pode ser alterado aqui.
               </p>
             </div>
 
-            {/* LOCKED Email Field */}
+            {/* Locked Email */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-gray-400" />
-                  E-mail (Bloqueado)
+                <label className="cr-label mb-0 flex items-center gap-1">
+                  <Lock className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+                  E-mail
                 </label>
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Imutável</span>
+                <span className="cr-badge cr-badge-neutral text-[10px]">Imutável</span>
               </div>
               <div className="relative">
                 <input
@@ -197,30 +208,24 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
                   disabled
                   readOnly
                   value={user.email}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs font-mono cursor-not-allowed select-none"
+                  className="cr-input cursor-not-allowed opacity-60 font-mono"
+                  style={{ background: 'var(--neutral-100)' }}
                 />
-                <Lock className="w-4 h-4 text-gray-400 absolute right-3 top-2.5" />
+                <Lock className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
               </div>
-              <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-gray-400 shrink-0" />
+              <p className="text-[10px] mt-1.5 flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
+                <AlertCircle className="w-3 h-3 shrink-0" />
                 O e-mail de acesso não pode ser alterado por razões de segurança.
               </p>
             </div>
           </div>
 
-          {/* Pinned Modal Actions */}
-          <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-2 z-10 bg-white dark:bg-gray-900">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
+          {/* Footer */}
+          <div className="cr-modal-footer">
+            <button type="button" onClick={onClose} className="cr-btn cr-btn-secondary">
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg text-xs font-medium bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold transition-colors shadow-sm"
-            >
+            <button type="submit" className="cr-btn cr-btn-primary">
               Salvar Alterações
             </button>
           </div>

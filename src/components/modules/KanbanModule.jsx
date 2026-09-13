@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { formatDateBR } from '../../utils/formatters';
 import {
   Kanban, List, Plus, Search, Trash2, UserCheck, Building, CheckCircle2,
-  Phone, Mail, Calendar, GripVertical, ChevronDown, ArrowRight, Eye
+  Phone, Mail, Calendar, GripVertical, ChevronDown, ArrowRight, Eye, X
 } from 'lucide-react';
 
 const STAGES = [
@@ -164,7 +164,7 @@ export const KanbanModule = () => {
   const totalWon = filteredLeads.filter(l => l.estagio === 'Fechado/Ganho').length;
   const conversionRate = filteredLeads.length > 0 ? ((totalWon / filteredLeads.length) * 100).toFixed(0) : 0;
 
-  const inputCls = "w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors";
+  const inputCls = "cr-input";
 
   const moveToNextStage = (lead) => {
     const currentIdx = STAGES.findIndex(s => s.id === lead.estagio);
@@ -179,29 +179,27 @@ export const KanbanModule = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-cr-fadeIn">
       {/* ─── Header ─── */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Funil de Vendas</h1>
+              <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Funil de Vendas</h1>
               {!isAdmin && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
-                  Meus Leads
-                </span>
+                <span className="cr-badge cr-badge-brand">Meus Leads</span>
               )}
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-[13px] mt-1" style={{ color: 'var(--text-secondary)' }}>
               {filteredLeads.length} oportunidades · Pipeline R$ {pipelineTotal.toLocaleString('pt-BR')} · {conversionRate}% conversão
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Search */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-[9px]" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
               <input type="text" placeholder="Buscar lead..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-900 dark:text-white w-44 sm:w-52 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" />
+                className="cr-input pl-8 w-44 sm:w-52" />
             </div>
 
             {/* Seller Filter (Only visible to Admin) */}
@@ -209,7 +207,7 @@ export const KanbanModule = () => {
               <select
                 value={selectedSeller}
                 onChange={(e) => setSelectedSeller(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-700 dark:text-gray-200 focus:outline-none appearance-none cursor-pointer font-medium"
+                className="cr-select w-auto"
               >
                 <option value="all">👥 Todos os Vendedores</option>
                 {(funcionarios || [])
@@ -224,26 +222,25 @@ export const KanbanModule = () => {
 
             {/* Channel Filter */}
             <select value={selectedChannel} onChange={(e) => setSelectedChannel(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-700 dark:text-gray-200 focus:outline-none appearance-none cursor-pointer">
+              className="cr-select w-auto">
               <option value="all">Todos os canais</option>
               <option value="Tráfego Pago">📢 Tráfego Pago</option>
               <option value="Listas Frias">📋 Listas Frias</option>
               <option value="Microinfluenciadores">🎤 Influenciadores</option>
             </select>
             {/* View Toggle */}
-            <div className="flex bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="cr-tab-group">
               <button onClick={() => setViewMode('kanban')} title="Kanban"
-                className={`px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1.5 transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+                className={`cr-tab flex items-center gap-1.5 ${viewMode === 'kanban' ? 'cr-tab-active' : ''}`}>
                 <Kanban className="w-3.5 h-3.5" /><span className="hidden sm:inline">Kanban</span>
               </button>
               <button onClick={() => setViewMode('list')} title="Lista"
-                className={`px-2.5 py-1.5 rounded-md text-xs flex items-center gap-1.5 transition-all ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+                className={`cr-tab flex items-center gap-1.5 ${viewMode === 'list' ? 'cr-tab-active' : ''}`}>
                 <List className="w-3.5 h-3.5" /><span className="hidden sm:inline">Lista</span>
               </button>
             </div>
             {/* Add Button */}
-            <button onClick={handleOpenAddModal}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">
+            <button onClick={handleOpenAddModal} className="cr-btn cr-btn-primary">
               <Plus className="w-3.5 h-3.5" /><span>Novo Lead</span>
             </button>
           </div>
@@ -280,16 +277,16 @@ export const KanbanModule = () => {
                 }}
               >
                 {/* Column Header */}
-                <div className={`rounded-t-xl border-t-2 ${stage.headerBorder} bg-white dark:bg-gray-900 border-x border-gray-200 dark:border-gray-800 px-3 py-2.5`}>
+                <div className={`rounded-t-xl border-t-2 ${stage.headerBorder} border-x px-3 py-2.5`} style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-default)', borderTopColor: undefined }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${stage.dot}`}></div>
-                      <span className="text-xs font-semibold text-gray-900 dark:text-white">{stage.label}</span>
-                      <span className="text-[10px] font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 w-5 h-5 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{stage.label}</span>
+                      <span className="text-[10px] font-medium w-5 h-5 rounded-full flex items-center justify-center" style={{ color: 'var(--text-tertiary)', background: 'var(--neutral-100)' }}>
                         {stageLeads.length}
                       </span>
                     </div>
-                    <span className="text-[10px] text-gray-400 font-medium">
+                    <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
                       R$ {stageMRR.toLocaleString('pt-BR')}
                     </span>
                   </div>
@@ -318,7 +315,7 @@ export const KanbanModule = () => {
                           setDraggedLeadId(null);
                           setDragOverStage(null);
                         }}
-                        className={`bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all shadow-sm hover:shadow-md group cursor-grab active:cursor-grabbing ${
+                        className={`cr-card cr-card-interactive transition-all group cursor-grab active:cursor-grabbing ${
                           draggedLeadId === lead.id ? 'opacity-50 scale-[0.97]' : ''
                         }`}
                         onClick={() => setExpandedCardId(isExpanded ? null : lead.id)}
@@ -550,17 +547,17 @@ export const KanbanModule = () => {
 
       {/* ─── ADD LEAD MODAL ─── */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center" onClick={() => setIsAddModalOpen(false)}>
-          <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+        <div className="cr-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
+          <div className="cr-modal cr-modal-lg" onClick={e => e.stopPropagation()}>
+            <div className="cr-modal-header">
               <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Adicionar Lead</h3>
-                <p className="text-[11px] text-gray-400 mt-0.5">Preencha os dados do novo contato</p>
+                <h3 className="text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>Adicionar Lead</h3>
+                <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Preencha os dados do novo contato</p>
               </div>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
+              <button onClick={() => setIsAddModalOpen(false)} className="cr-btn cr-btn-ghost w-8 h-8 p-0"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleSaveNewLead} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 <div>
                   <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
                     Nome do contato <span className="text-red-500 font-bold ml-0.5">*</span>
@@ -634,10 +631,9 @@ export const KanbanModule = () => {
                 </div>
               </div>
 
-              {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">Salvar Lead</button>
+              <div className="cr-modal-footer">
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="cr-btn cr-btn-secondary">Cancelar</button>
+                <button type="submit" className="cr-btn cr-btn-primary">Salvar Lead</button>
               </div>
             </form>
           </div>
@@ -646,18 +642,18 @@ export const KanbanModule = () => {
 
       {/* ─── CONVERT MODAL ─── */}
       {isConvertModalOpen && selectedLeadForConvert && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 dark:bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex min-h-full items-center justify-center" onClick={() => setIsConvertModalOpen(false)}>
-          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl my-auto overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="shrink-0 p-4 sm:p-5 pb-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-10">
+        <div className="cr-modal-overlay" onClick={() => setIsConvertModalOpen(false)}>
+          <div className="cr-modal cr-modal-md" onClick={e => e.stopPropagation()}>
+            <div className="cr-modal-header">
               <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Converter em Cliente</h3>
-                <p className="text-[11px] text-gray-400 mt-0.5">Confirme os dados do novo assinante</p>
+                <h3 className="text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>Converter em Cliente</h3>
+                <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Confirme os dados do novo assinante</p>
               </div>
-              <button onClick={() => setIsConvertModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">×</button>
+              <button onClick={() => setIsConvertModalOpen(false)} className="cr-btn cr-btn-ghost w-8 h-8 p-0"><X className="w-4 h-4" /></button>
             </div>
 
             <form onSubmit={handleConfirmConvert} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="cr-modal-body space-y-3.5 text-xs">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-800">
                   <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
                     {selectedLeadForConvert.nome.charAt(0)}
@@ -699,10 +695,9 @@ export const KanbanModule = () => {
                 </div>
               </div>
 
-              {/* Pinned Modal Footer */}
-              <div className="shrink-0 p-4 sm:p-5 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2 bg-gray-50/70 dark:bg-gray-900/90 z-10">
-                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-sm">Confirmar Conversão</button>
+              <div className="cr-modal-footer">
+                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="cr-btn cr-btn-secondary">Cancelar</button>
+                <button type="submit" className="cr-btn cr-btn-primary">Confirmar Conversão</button>
               </div>
             </form>
           </div>

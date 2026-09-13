@@ -54,31 +54,37 @@ export const Sidebar = () => {
       className={`
         sticky top-0 h-screen flex flex-col justify-between
         border-r transition-all duration-200 ease-in-out z-30
-        bg-white border-gray-200 dark:bg-gray-950 dark:border-gray-800
-        ${collapsed ? 'w-16' : 'w-60'}
+        ${collapsed ? 'w-[68px]' : 'w-[248px]'}
       `}
+      style={{
+        background: 'var(--sidebar-bg)',
+        borderColor: 'var(--sidebar-border)',
+      }}
     >
       {/* Top Section: Logo + Nav */}
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* Brand */}
-        <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'px-4'} h-14 border-b border-gray-200 dark:border-gray-800 shrink-0 overflow-hidden`}>
+        <div
+          className={`flex items-center ${collapsed ? 'justify-center px-3' : 'px-5'} h-[60px] shrink-0 overflow-hidden`}
+          style={{ borderBottom: '1px solid var(--sidebar-border)' }}
+        >
           {customBrand?.logoUrl ? (
             <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'justify-start max-w-full'}`}>
               <img
                 src={customBrand.logoUrl}
                 alt="Logo"
-                className={`object-contain ${collapsed ? 'max-h-8 max-w-[36px]' : 'max-h-10 max-w-[190px] w-auto'} transition-all`}
+                className={`object-contain ${collapsed ? 'max-h-8 max-w-[36px]' : 'max-h-10 max-w-[190px] w-auto'} transition-all brightness-0 invert`}
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             </div>
           ) : (
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
                 <Key className="w-4 h-4 text-white" />
               </div>
               {!collapsed && (
-                <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight truncate">
+                <span className="text-[14px] font-bold text-white tracking-tight truncate">
                   Chave Reserva
                 </span>
               )}
@@ -86,8 +92,8 @@ export const Sidebar = () => {
           )}
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto no-scrollbar py-3 px-2.5 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -99,18 +105,33 @@ export const Sidebar = () => {
                 onClick={() => setActiveTab(item.id)}
                 title={collapsed ? (hasBadge ? `${item.label} (${item.badge} pendentes)` : item.label) : undefined}
                 className={`
-                  relative w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-colors
+                  relative w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
                   ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
-                  ${isActive
-                    ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800/60'
-                  }
                 `}
+                style={{
+                  background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
+                  color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = 'var(--sidebar-text-hover)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = 'var(--sidebar-text)';
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
               >
+                {/* Active indicator bar */}
+                {isActive && <span className="cr-sidebar-indicator" />}
+
                 <div className="relative shrink-0">
                   <Icon className="w-[18px] h-[18px]" />
                   {hasBadge && collapsed && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-950 animate-pulse"></span>
+                    <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 animate-pulse" style={{ ringColor: 'var(--sidebar-bg)' }} />
                   )}
                 </div>
 
@@ -118,8 +139,7 @@ export const Sidebar = () => {
                   <>
                     <span className="truncate">{item.label}</span>
                     {hasBadge && (
-                      <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white shadow-sm animate-pulse">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                      <span className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
                         {item.badge}
                       </span>
                     )}
@@ -130,16 +150,22 @@ export const Sidebar = () => {
           })}
         </nav>
 
-        {/* Compact KPIs — only when expanded */}
+        {/* KPIs when expanded */}
         {!collapsed && (
-          <div className="mx-3 mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 space-y-2 shrink-0">
+          <div
+            className="mx-3 mb-3 p-3.5 rounded-lg space-y-2.5 shrink-0"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--sidebar-border)',
+            }}
+          >
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Clientes Ativos</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{clientesAtivos.length}</span>
+              <span style={{ color: 'var(--sidebar-text)' }}>Clientes Ativos</span>
+              <span className="font-semibold text-white">{clientesAtivos.length}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-500 dark:text-gray-400">MRR</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <span style={{ color: 'var(--sidebar-text)' }}>MRR</span>
+              <span className="font-semibold text-white">
                 R$ {mrrTotalReal.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
               </span>
             </div>
@@ -147,17 +173,24 @@ export const Sidebar = () => {
         )}
       </div>
 
-      {/* Bottom Controls */}
-      <div className="border-t border-gray-200 dark:border-gray-800 p-2 shrink-0">
-        {/* Collapse Toggle */}
+      {/* Collapse Toggle */}
+      <div className="p-2.5 shrink-0" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
         <button
           onClick={() => setCollapsed(!collapsed)}
           title={collapsed ? 'Expandir menu' : 'Recolher menu'}
           className={`
-            w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-colors
-            text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800/60
+            w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-150
             ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
           `}
+          style={{ color: 'var(--sidebar-text)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--sidebar-text-hover)';
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--sidebar-text)';
+            e.currentTarget.style.background = 'transparent';
+          }}
         >
           {collapsed ? (
             <PanelLeftOpen className="w-[18px] h-[18px] shrink-0" />
