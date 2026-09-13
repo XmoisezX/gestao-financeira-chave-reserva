@@ -7,7 +7,6 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
 
   const [name, setName] = useState(user?.name || 'Moisés Torres');
   const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || '');
-  const [role, setRole] = useState(user?.role || 'Administrador');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -41,7 +40,7 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
     updateUser({
       name,
       photoUrl,
-      role,
+      role: user.role,
       avatar: photoUrl ? null : (name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'MT')
     });
     setSavedSuccess(true);
@@ -63,7 +62,7 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
               Configurações de Perfil
             </h3>
             <p className="text-[11px] text-gray-400 mt-0.5">
-              Personalize seu nome, foto de perfil e cargo
+              Personalize seu nome e foto de perfil
             </p>
           </div>
           <button
@@ -158,18 +157,29 @@ export const ConfiguracoesModal = ({ isOpen, onClose }) => {
               />
             </div>
 
-            {/* Role Field */}
+            {/* LOCKED Role Field */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-                Cargo / Função
-              </label>
-              <input
-                type="text"
-                value={role}
-                onChange={e => setRole(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                placeholder="Administrador"
-              />
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-gray-400" />
+                  Cargo / Função (Bloqueado)
+                </label>
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Definido pela Administração</span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  disabled
+                  readOnly
+                  value={user.role || 'Colaborador'}
+                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs cursor-not-allowed select-none font-medium"
+                />
+                <Lock className="w-4 h-4 text-gray-400 absolute right-3 top-2.5" />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-gray-400 shrink-0" />
+                O cargo é designado pelo administrador no painel de equipe e não pode ser alterado aqui.
+              </p>
             </div>
 
             {/* LOCKED Email Field */}

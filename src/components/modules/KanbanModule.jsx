@@ -29,11 +29,12 @@ const CHANNEL_ICONS = {
 };
 
 export const KanbanModule = () => {
-  const { leads, addLead, deleteLead, moveLeadStage, convertLeadToClient, planos, isAdmin, user } = useApp();
+  const { leads, addLead, deleteLead, moveLeadStage, convertLeadToClient, planos, isAdmin, user, funcionarios } = useApp();
 
   const [viewMode, setViewMode] = useState('kanban');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChannel, setSelectedChannel] = useState('all');
+  const [selectedSeller, setSelectedSeller] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [selectedLeadForConvert, setSelectedLeadForConvert] = useState(null);
@@ -43,28 +44,76 @@ export const KanbanModule = () => {
 
   const [formData, setFormData] = useState({
     nome: '', empresa: '', email: '', telefone: '',
-    planoInteresse: 'Imobiliária Pro', mrrEstimado: 350, canal: 'Tráfego Pago', estagio: 'Lead', observacoes: ''
+    planoInteresse: 'Imobiliária Pro', mrrEstimado: 350, canal: 'Tráfego Pago', estagio: 'Lead', observacoes: '',
+    vendedorResponsavel: ''
   });
   const [convertFormData, setConvertFormData] = useState({ plano: 'Imobiliária Pro', mrr: 350, metodoPagamento: 'Pix', modulosAdicionais: [] });
 
   const filteredLeads = leads.filter(l => {
-    // Access control: sellers only see their assigned or created leads
+    // Access control:
+    // Non-admin sellers can ONLY view leads they created or are assigned to
     if (!isAdmin && user) {
-      const isMyLead = l.vendedorResponsavel === user.name || l.responsavel === user.name || l.criadoPor === user.name || l.vendedorResponsavel === user.email;
-      const isUnassigned = !l.vendedorResponsavel && !l.responsavel;
-      if (!isMyLead && !isUnassigned) return false;
+      const userNormName = (user.name || '').toLowerCase().trim();
+      const userNormEmail = (user.email || '').toLowerCase().trim();
+      
+      const leadVendedor = (l.vendedorResponsavel || '').toLowerCase().trim();
+      const leadResp = (l.responsavel || '').toLowerCase().trim();
+      const leadCriadoPor = (l.criadoPor || '').toLowerCase().trim();
+      const leadCriadorEmail = (l.criadorEmail || '').toLowerCase().trim();
+
+      const isMyLead = (
+        (leadVendedor && (leadVendedor === userNormName || leadVendedor === userNormEmail)) ||
+        (leadResp && (leadResp === userNormName || leadResp === userNormEmail)) ||
+        (leadCriadoPor && (leadCriadoPor === userNormName || leadCriadoPor === userNormEmail)) ||
+        (leadCriadorEmail && leadCriadorEmail === userNormEmail)
+      );
+
+      if (!isMyLead) return false;
+    } else if (isAdmin && selectedSeller !== 'all') {
+      const leadVendedor = (l.vendedorResponsavel || '').toLowerCase().trim();
+      const leadResp = (l.responsavel || '').toLowerCase().trim();
+      const leadCriadoPor = (l.criadoPor || '').toLowerCase().trim();
+      const targetSeller = selectedSeller.toLowerCase().trim();
+      
+      const matchesSeller = leadVendedor === targetSeller || leadResp === targetSeller || leadCriadoPor === targetSeller;
+      if (!matchesSeller) return false;
     }
 
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = l.nome.toLowerCase().includes(q) || l.empresa.toLowerCase().includes(q) || l.email.toLowerCase().includes(q);
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || (
+      (l.nome || '').toLowerCase().includes(q) ||
+      (l.empresa || '').toLowerCase().includes(q) ||
+      (l.email || '').toLowerCase().includes(q) ||
+      (l.vendedorResponsavel || '').toLowerCase().includes(q)
+    );
     return matchesSearch && (selectedChannel === 'all' || l.canal === selectedChannel);
   });
 
+  const handleOpenAddModal = () => {
+    setFormData({
+      nome: '',
+      empresa: '',
+      email: '',
+      telefone: '',
+      planoInteresse: 'Imobiliária Pro',
+      mrrEstimado: 350,
+      canal: 'Tráfego Pago',
+      estagio: 'Lead',
+      observacoes: '',
+      vendedorResponsavel: user?.name || ''
+    });
+    setIsAddModalOpen(true);
+  };
+
   const handleSaveNewLead = (e) => {
     e.preventDefault();
+    const assignedSeller = isAdmin ? (formData.vendedorResponsavel || user?.name || '') : (user?.name || '');
     addLead({
       ...formData,
-      vendedorResponsavel: formData.vendedorResponsavel || user?.name || ''
+      vendedorResponsavel: assignedSeller,
+      criadoPor: user?.name || '',
+      criadorEmail: user?.email || '',
+      criadorId: user?.id || ''
     });
     setIsAddModalOpen(false);
   };
@@ -113,18 +162,44 @@ export const KanbanModule = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Funil de Vendas</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Funil de Vendas</h1>
+              {!isAdmin && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                  Meus Leads
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {filteredLeads.length} oportunidades · Pipeline R$ {pipelineTotal.toLocaleString('pt-BR')} · {conversionRate}% conversão
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Search */}
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-[9px]" />
               <input type="text" placeholder="Buscar lead..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-900 dark:text-white w-52 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" />
+                className="pl-8 pr-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-900 dark:text-white w-44 sm:w-52 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" />
             </div>
+
+            {/* Seller Filter (Only visible to Admin) */}
+            {isAdmin && (
+              <select
+                value={selectedSeller}
+                onChange={(e) => setSelectedSeller(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-700 dark:text-gray-200 focus:outline-none appearance-none cursor-pointer font-medium"
+              >
+                <option value="all">👥 Todos os Vendedores</option>
+                {(funcionarios || [])
+                  .filter(f => f.status === 'Ativo')
+                  .map(f => (
+                    <option key={f.id || f.email} value={f.nome}>
+                      👤 {f.nome} ({f.cargo || 'Equipe'})
+                    </option>
+                  ))}
+              </select>
+            )}
+
             {/* Channel Filter */}
             <select value={selectedChannel} onChange={(e) => setSelectedChannel(e.target.value)}
               className="px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs text-gray-700 dark:text-gray-200 focus:outline-none appearance-none cursor-pointer">
@@ -145,7 +220,7 @@ export const KanbanModule = () => {
               </button>
             </div>
             {/* Add Button */}
-            <button onClick={() => { setFormData({ nome: '', empresa: '', email: '', telefone: '', planoInteresse: 'Imobiliária Pro', mrrEstimado: 350, canal: 'Tráfego Pago', estagio: 'Lead', observacoes: '' }); setIsAddModalOpen(true); }}
+            <button onClick={handleOpenAddModal}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm">
               <Plus className="w-3.5 h-3.5" /><span>Novo Lead</span>
             </button>
@@ -258,10 +333,15 @@ export const KanbanModule = () => {
                             </span>
                           </div>
 
-                          {/* Channel + Date */}
-                          <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400">
-                            <span>{channelIcon} {lead.canal}</span>
-                            <span>{lead.dataCriacao}</span>
+                          {/* Channel + Seller + Date */}
+                          <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400 gap-1">
+                            <span className="truncate">{channelIcon} {lead.canal}</span>
+                            {(lead.vendedorResponsavel || lead.criadoPor) && (
+                              <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium truncate max-w-[100px]" title={`Vendedor: ${lead.vendedorResponsavel || lead.criadoPor}`}>
+                                👤 {lead.vendedorResponsavel || lead.criadoPor}
+                              </span>
+                            )}
+                            <span className="shrink-0">{lead.dataCriacao}</span>
                           </div>
                         </div>
 
@@ -363,6 +443,7 @@ export const KanbanModule = () => {
               <tr>
                 <th className="px-4 py-3 font-medium">Lead</th>
                 <th className="px-4 py-3 font-medium">Empresa</th>
+                <th className="px-4 py-3 font-medium">Vendedor</th>
                 <th className="px-4 py-3 font-medium">Plano</th>
                 <th className="px-4 py-3 font-medium text-right">MRR</th>
                 <th className="px-4 py-3 font-medium">Canal</th>
@@ -382,6 +463,11 @@ export const KanbanModule = () => {
                       <p className="text-[10px] text-gray-400 mt-0.5">{lead.email}</p>
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{lead.empresa}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                        {lead.vendedorResponsavel || lead.criadoPor || '—'}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${planColor}`}>{lead.planoInteresse}</span>
                     </td>
@@ -444,9 +530,40 @@ export const KanbanModule = () => {
                     <input value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} className={inputCls} placeholder="(11) 99999-8888" />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">E-mail</label>
-                  <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="contato@empresa.com" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">E-mail</label>
+                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputCls} placeholder="contato@empresa.com" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                      Vendedor Responsável
+                    </label>
+                    {isAdmin ? (
+                      <select
+                        value={formData.vendedorResponsavel}
+                        onChange={e => setFormData({ ...formData, vendedorResponsavel: e.target.value })}
+                        className={inputCls}
+                      >
+                        <option value={user?.name || 'Administrador'}>{user?.name || 'Administrador'} (Você)</option>
+                        {(funcionarios || [])
+                          .filter(f => f.status === 'Ativo' && f.nome !== user?.name)
+                          .map(f => (
+                            <option key={f.id || f.email} value={f.nome}>
+                              {f.nome} {f.cargo ? `(${f.cargo})` : ''}
+                            </option>
+                          ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        disabled
+                        readOnly
+                        value={user?.name || 'Vendedor'}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-xs cursor-not-allowed select-none font-medium"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>

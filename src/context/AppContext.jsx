@@ -1136,14 +1136,19 @@ export const AppProvider = ({ children }) => {
   const addLead = (newLead) => {
     const leadWithId = {
       ...newLead,
-      id: `lead-${Date.now()}`,
-      dataCriacao: new Date().toISOString().split('T')[0]
+      id: newLead.id || `lead-${Date.now()}`,
+      vendedorResponsavel: newLead.vendedorResponsavel || user?.name || '',
+      criadoPor: newLead.criadoPor || user?.name || '',
+      criadorEmail: newLead.criadorEmail || user?.email || '',
+      dataCriacao: newLead.dataCriacao || new Date().toISOString().split('T')[0]
     };
     setLeads(prev => [leadWithId, ...prev]);
+    supabase.from('leads').insert([leadWithId]).then(() => {}).catch(() => {});
   };
 
   const updateLead = (id, updatedFields) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, ...updatedFields } : l));
+    supabase.from('leads').update(updatedFields).eq('id', id).then(() => {}).catch(() => {});
   };
 
   const deleteLead = (id) => {
@@ -1153,6 +1158,7 @@ export const AppProvider = ({ children }) => {
 
   const moveLeadStage = (id, newStage) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, estagio: newStage } : l));
+    supabase.from('leads').update({ estagio: newStage }).eq('id', id).then(() => {}).catch(() => {});
   };
 
   // Conversion Lead to Client
@@ -1174,13 +1180,14 @@ export const AppProvider = ({ children }) => {
       modulosAdicionais: formData.modulosAdicionais || [],
       cpfCnpj: '',
       endereco: '',
-      vendedorResponsavel: '',
+      vendedorResponsavel: lead.vendedorResponsavel || lead.criadoPor || user?.name || '',
       suporteResponsavel: '',
       modalidade: 'mensal',
       desconto: 0
     };
 
     setClientes(prev => [newClient, ...prev]);
+    supabase.from('clientes').insert([newClient]).then(() => {}).catch(() => {});
   };
 
   const validateClientSale = (clientId, valData) => {
