@@ -106,14 +106,14 @@ export const FuncionariosModule = () => {
 
       setIsModalOpen(false);
     } catch (err) {
-      alert('Erro ao salvar no Supabase: ' + (err.message || err));
+      alert('Erro ao salvar usuário: ' + (err.message || err));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (func) => {
-    if (window.confirm(`Tem certeza que deseja excluir o usuário "${func.nome}"? O acesso no Supabase também será revogado.`)) {
+    if (window.confirm(`Tem certeza que deseja excluir o usuário "${func.nome}"?`)) {
       if (addAuditLog) {
         addAuditLog('Exclusão de Usuário', `Usuário "${func.nome}" (${func.cargo}) excluído.`);
       }

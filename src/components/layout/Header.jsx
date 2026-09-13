@@ -14,9 +14,6 @@ import {
   Kanban,
   Users,
   TrendingUp,
-  Cloud,
-  RefreshCw,
-  Check,
   Bell,
   DollarSign
 } from 'lucide-react';
